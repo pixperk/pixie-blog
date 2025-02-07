@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Blog {
+  id          String   @id @default(cuid())
+  title       String
+  subtitle    String?
+  content     String   @db.Text
+  publishDate DateTime @default(now())
+  readingTime String
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id],onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  comments Comment[]
+  upvotes  Upvote[]
+  Bookmark Bookmark[]
+}
+
+model User {
+  id       String     @id @default(cuid())
+  name     String
+  socialId String     @unique
+  email    String     @unique
+  bio      String?
+  avatar   String
+  blogs    Blog[]
+  comments Comment[]
+  upvotes  Upvote[]
+  Bookmark Bookmark[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id],onDelete: Cascade)
+  blogId String
+  blog   Blog   @relation(fields: [blogId], references: [id],onDelete: Cascade)
+
+  parentId String?
+  parent   Comment?  @relation("CommentParent", fields: [parentId], references: [id],onDelete: Cascade)
+  replies  Comment[] @relation("CommentParent")
+}
+
+model Upvote {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  blogId String
+  blog   Blog   @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, blogId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  blogId String
+  blog   Blog   @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, blogId])
+}

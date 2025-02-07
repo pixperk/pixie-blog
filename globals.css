@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-black text-white;
+}
+
+::selection {
+  @apply bg-neon-green-500/30 text-white;
+}
+
+/* Add smooth transitions for images */
+img {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+/* Ensure proper spacing between sections */
+section > div:not(:last-child) {
+  @apply border-b border-gray-800/50 pb-8;
+}
+
+/* Editor Theme */
+.w-md-editor {
+  background-color: transparent !important;
+}
+
+.w-md-editor-text {
+  color: #39ff14 !important;
+  background-color: transparent !important;
+}
+
+.w-md-editor-toolbar {
+  background-color: #1a1a1a !important;
+  border-bottom: 1px solid #39ff14 !important;
+}
+
+.w-md-editor-toolbar button {
+  color: #39ff14 !important;
+}
+
+.w-md-editor-toolbar button:hover {
+  background-color: #39ff1420 !important;
+}
+
+/* Preview Theme */
+.wmde-markdown {
+  font-size: 1.125rem !important;
+  line-height: 1.75 !important;
+  background-color: transparent !important;
+}
+
+.wmde-markdown h1,
+.wmde-markdown h2,
+.wmde-markdown h3,
+.wmde-markdown h4,
+.wmde-markdown h5,
+.wmde-markdown h6 {
+  color: #39ff14 !important;
+  border-bottom-color: #39ff14 !important;
+  margin-top: 2rem !important;
+  margin-bottom: 1rem !important;
+  background-color: transparent !important;
+}
+
+.wmde-markdown code {
+  color: #39ff14 !important;
+  background-color: transparent !important;
+  padding: 0.2em 0.4em !important;
+  border-radius: 0.375rem !important;
+}
+
+.wmde-markdown pre {
+  background-color: #000 !important;
+  border: 1px solid #39ff14 !important;
+  border-radius: 0.5rem !important;
+  padding: 1rem !important;
+  margin: 1.5rem 0 !important;
+}
+
+.wmde-markdown blockquote {
+  color: #9ca3af !important;
+  border-left-color: #39ff14 !important;
+  background-color: transparent !important;
+  padding: 1rem !important;
+  margin: 1.5rem 0 !important;
+}
+
+.wmde-markdown a {
+  color: #39ff14 !important;
+  text-decoration: underline !important;
+}
+
+.wmde-markdown hr {
+  border-color: #39ff14 !important;
+  margin: 2rem 0 !important;
+}
+
+.wmde-markdown img {
+  border-radius: 0.5rem !important;
+  margin: 1.5rem auto !important;
+}
+
+.prose {
+  max-width: none !important;
+  background-color: transparent !important;
+}
+
+.prose img {
+  margin: 2rem auto !important;
+  border-radius: 0.5rem !important;
+}
+
+.prose pre {
+  background-color: #000 !important;
+  border: 1px solid #39ff14 !important;
+}
+
+.prose code {
+  color: #39ff14 !important;
+  background-color: transparent !important;
+}
+
+/* Calendar styles */
+.rdp {
+  --rdp-cell-size: 40px !important;
+  --rdp-accent-color: #39ff14 !important;
+  --rdp-background-color: transparent !important;
+  --rdp-accent-color-dark: #39ff14 !important;
+  --rdp-background-color-dark: transparent !important;
+  --rdp-outline: 2px solid var(--rdp-accent-color) !important;
+  --rdp-outline-selected: 2px solid #39ff14 !important;
+  margin: 1em;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #39ff14 #000000;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #000000;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #39ff14;
+  border-radius: 4px;
+  border: 2px solid #000000;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #32cd32;
+}
+

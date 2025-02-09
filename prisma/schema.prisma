@@ -21,7 +21,7 @@ model Blog {
   publishDate DateTime @default(now())
   readingTime String
   authorId    String
-  author      User     @relation(fields: [authorId], references: [id],onDelete: Cascade)
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
 
   comments Comment[]
@@ -40,6 +40,7 @@ model User {
   comments Comment[]
   upvotes  Upvote[]
   Bookmark Bookmark[]
+  Images   Images[]
 }
 
 model Comment {
@@ -48,12 +49,12 @@ model Comment {
   createdAt DateTime @default(now())
 
   userId String
-  user   User   @relation(fields: [userId], references: [id],onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   blogId String
-  blog   Blog   @relation(fields: [blogId], references: [id],onDelete: Cascade)
+  blog   Blog   @relation(fields: [blogId], references: [id], onDelete: Cascade)
 
   parentId String?
-  parent   Comment?  @relation("CommentParent", fields: [parentId], references: [id],onDelete: Cascade)
+  parent   Comment?  @relation("CommentParent", fields: [parentId], references: [id], onDelete: Cascade)
   replies  Comment[] @relation("CommentParent")
 }
 
@@ -81,4 +82,11 @@ model Bookmark {
   blog   Blog   @relation(fields: [blogId], references: [id], onDelete: Cascade)
 
   @@unique([userId, blogId])
+}
+
+model Images {
+  id String @id @default(cuid())
+  url String @unique
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

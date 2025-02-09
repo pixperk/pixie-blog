@@ -22,7 +22,7 @@ const content = [
   },
   {
     type: "image",
-    src: "/placeholder.jpeg?height=800&width=1200",
+    src: "/placeholder.png?height=800&width=1200",
     alt: "Second sample image",
     aspectRatio: "3/2",
   },
@@ -34,7 +34,7 @@ const content = [
   },
   {
     type: "image",
-    src: "/placeholder.jpeg?height=600&width=800",
+    src: "/placeholder.png?height=600&width=800",
     alt: "Third sample image",
     aspectRatio: "4/3",
   },
@@ -75,7 +75,7 @@ export default function BlogPost() {
                       style={{ position: "relative", width: "100%", paddingTop: `calc(${item.aspectRatio} * 100%)` }}
                     >
                       <Image
-                        src={item.src || "/placeholder.jpeg"}
+                        src={item.src || "/placeholder.png"}
                         alt={item.alt}
                         fill
                         className="object-cover"

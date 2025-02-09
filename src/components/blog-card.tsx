@@ -24,7 +24,7 @@ export function BlogCard({ id, title, excerpt, author, publishedAt, readingTime,
         <div className="md:col-span-8 space-y-3">
           <div className="flex items-center gap-2">
             <Image
-              src={author.image || "/placeholder.jpeg"}
+              src={author.image || "/placeholder.png"}
               alt={author.name}
               width={24}
               height={24}
@@ -53,7 +53,7 @@ export function BlogCard({ id, title, excerpt, author, publishedAt, readingTime,
         {image && (
           <div className="md:col-span-4">
             <Image
-              src={image || "/placeholder.jpeg"}
+              src={image || "/placeholder.png"}
               alt={title}
               width={200}
               height={134}

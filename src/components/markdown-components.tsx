@@ -5,25 +5,79 @@ import Image from "next/image"
 import {useState, type JSX} from "react"
 import { Check, Copy } from "lucide-react"
 
+interface ImageUpload {
+  file: File
+  preview: string
+  uploaded: boolean
+  url: string
+}
 
+const MotionImage = motion.create(Image)
 
-const MotionImage = motion(Image)
+export const CustomImage = ({
+  src = "https://placehold.co/600x400/EEE/31343C?font=playfair-display&text=Your%20Image",
+  alt,
+  uploads,
+}: {
+  src?: string;
+  alt?: string;
+  uploads?: ImageUpload[];
+}) => {
+  if (!src) return null;
 
+  // Check if the src starts with "/", "http", or "https"
+  const isValidSrc = src.startsWith("/") || src.startsWith("http") || src.startsWith("https");
+  const resolvedSrc = isValidSrc
+    ? src
+    : "/placeholder.png";
 
-export const CustomImage = ({ node, ...props }: any) => (
-  <div className="my-8">
-    <MotionImage
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      {...props}
-      className="rounded-lg shadow-lg"
-      width={700}
-      height={400}
-      layout="responsive"
-    />
-  </div>
-)
+  const upload = uploads?.find((u) => u.preview === resolvedSrc || u.url === resolvedSrc);
+  const imageSrc = upload ? (upload.uploaded ? upload.url : upload.preview) : resolvedSrc;
+
+  return (
+    <div className="my-4">
+      <MotionImage
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        src={imageSrc || "/placeholder.png"}
+        alt={alt || ""}
+        width={600}
+        height={400}
+        className="rounded-lg object-cover"
+      />
+      {alt && <p className="text-sm text-gray-500 mt-2">{alt}</p>}
+    </div>
+  );
+};
+
+/* export const CustomImage = ({ node, src, alt, width, height, ...props }: any) => {
+  if (!src) {
+    console.error("CustomImage: Missing 'src' property.");
+    return (
+      <div className="my-8 text-center text-red-500">
+        <p>Image failed to load</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="my-8">
+      <MotionImage
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        src={src}
+        alt={alt || "Image"} // Provide default alt text if not passed
+        width={width || 700} // Default width
+        height={height || 400} // Default height
+        layout="responsive"
+        className="rounded-lg shadow-lg"
+        {...props} // Spread any additional props
+      />
+    </div>
+  );
+}; */
 
 export const CustomHeading = ({ level, children }: any) => {
   const Tag = `h${level}` as keyof JSX.IntrinsicElements

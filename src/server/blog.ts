@@ -158,6 +158,14 @@ export async function hasUserBookmarked(blogId: string, userId: string) {
   return !!bookmark;
 }
 
+function calculateTrendingScore(createdAt: Date, comments: number, upvotes: number): number {
+  const ageInHours = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60);
+  const recencyWeight = 1 / Math.log2(ageInHours + 2); 
+  const engagementWeight = comments * 2 + upvotes; 
+
+  return recencyWeight * engagementWeight;
+}
+
 export async function fetchTrendingBlogs(page: number = 1, limit: number = 5) {
   const blogs = await prisma.blog.findMany({
     include: {
@@ -167,23 +175,31 @@ export async function fetchTrendingBlogs(page: number = 1, limit: number = 5) {
       },
     },
     orderBy: {
-      createdAt: "desc",
+      createdAt: "desc", 
     },
-    skip: (page - 1) * limit * 2,
-    take: limit * 2,
+    skip: (page - 1) * limit,
+    take: limit,
   });
 
-  return blogs
-    .map((blog) => ({
-      ...blog,
-      score:
-        blog._count.upvotes * 3 +
-        blog._count.comments * 2 -
-        ((Date.now() - new Date(blog.createdAt).getTime()) / 3_600_000) * 0.5,
-    }))
-    .sort((a, b) => b.score - a.score) // Sort by score
-    .slice(0, limit); // Return only the required amount
+ 
+  const scoredBlogs = blogs.map(blog => ({
+    ...blog,
+    score: calculateTrendingScore(
+      blog.createdAt,
+      blog._count.comments,
+      blog._count.upvotes
+    ),
+  }));
+
+
+  scoredBlogs.sort((a, b) => b.score - a.score);
+
+  return scoredBlogs.slice(0, limit);
 }
+
+
+
+
 
 export type BlogType = Awaited<ReturnType<typeof fetchTrendingBlogs>>;
 

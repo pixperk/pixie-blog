@@ -1,4 +1,8 @@
-module.exports = {
+
+
+import { withUt } from "uploadthing/tw";
+
+export default withUt({
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
   theme: {
@@ -61,5 +65,5 @@ module.exports = {
     },
   },
   plugins: [require("tailwindcss-animate"), require("tailwind-scrollbar")],
-}
+})
 

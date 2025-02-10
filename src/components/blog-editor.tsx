@@ -7,6 +7,7 @@ import { createBlog } from "@/server/blog"
 import "@uiw/react-markdown-preview/markdown.css"
 import "@uiw/react-md-editor/markdown-editor.css"
 import { SaveIcon, SendIcon } from "lucide-react"
+import Select from "react-select"
 import { useTheme } from "next-themes"
 import dynamic from "next/dynamic"
 import { useEffect, useState, useCallback } from "react"
@@ -72,7 +73,8 @@ export function BlogEditor() {
   })
   const [userImages, setUserImages] = useState<string[]>([])
   const [thumbnailUrl, setThumbnailUrl] = useState<string>("https://a3dg9kymej.ufs.sh/f/8azif4ZMinvp6Rn93Yxu3McYpieCbsZjXGPxk2oTOBz0QJEI")
-
+  const [tags, setTags] = useState<{ value: string; label: string }[]>([]) // For available tags
+  const [selectedTags, setSelectedTags] = useState<string[]>([]) 
   const updateReadingTime = useCallback(
     debounce((content) => {
       setPost((prev) => ({
@@ -108,6 +110,25 @@ export function BlogEditor() {
       fetchImages();
     }
   }, [user]);
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const response = await fetch(
+          "https://api.stackexchange.com/2.3/tags?order=desc&sort=popular&site=stackoverflow"
+        )
+        const data = await response.json()
+        const fetchedTags = data.items.map((tag: { name: string }) => ({
+          value: tag.name,
+          label: tag.name,
+        }))
+        setTags(fetchedTags)
+      } catch (error) {
+        toast.error("Failed to fetch tags.")
+      }
+    }
+    fetchTags()
+  }, [])
   
 
   const handleCreate = async () => {
@@ -118,7 +139,7 @@ export function BlogEditor() {
 
     setIsSubmitting(true)
     try {
-      await createBlog(post.title, post.content, post.readingTime, user?.id!,  thumbnailUrl,post.subtitle)
+      await createBlog(post.title, post.content, post.readingTime, user?.id!,  selectedTags, thumbnailUrl,post.subtitle)
       console.log("Blog post created successfully!")
       router.push("/")
     } catch (error) {
@@ -178,6 +199,20 @@ export function BlogEditor() {
               setImages={setUserImages}
             />
           </div>
+          <div>
+        <h2 className="text-lg font-semibold text-gray-300 mb-2">Select Tags</h2>
+        <Select
+          options={tags}
+          isMulti
+          onChange={(selectedOptions) => {
+            setSelectedTags(selectedOptions.map((option) => option.value))
+            setPost((prev) => ({ ...prev, tags: selectedOptions.map((option) => option.value) }))
+          }}
+          className="basic-multi-select"
+          classNamePrefix="select"
+          placeholder="Search and select tags..."
+        />
+      </div>
           <MDEditor
             value={post.content}
             color="neon-green-400"

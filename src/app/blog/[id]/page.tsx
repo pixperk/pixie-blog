@@ -28,6 +28,7 @@ import SkeletonBlogPost from "./SkeletonBlogPost"
 import { SocialInteractions } from "@/components/social-interactions"
 import { Button } from "@/components/ui/button"
 import { MessageSquare } from "lucide-react"
+import { RecommendedContent } from "./recommended-content"
 
 export default function BlogPost({ params }: { params: Promise<{ id: string }> }) {
   const [blog, setBlog] = useState<blogType | null>(null)
@@ -103,6 +104,20 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
             {blog.subtitle && (
               <h2 className="text-xl sm:text-2xl font-thin text-neon-green-400 leading-snug mt-2">{blog.subtitle}</h2>
             )}
+
+        
+            {blog.tags?.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {blog.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-3 py-1 text-sm font-medium text-white bg-neon-green-700 rounded-full border border-neon-green-400"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </motion.header>
 
           <motion.div
@@ -136,8 +151,6 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
               />
             </motion.div>
           )}
-
-         
 
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -176,6 +189,7 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
           <MessageSquare className="w-5 h-5 mr-2" />
           Comments
         </Button>
+        <RecommendedContent blogId={blogId} author={blog.author} />
       </main>
     </div>
   )

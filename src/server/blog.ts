@@ -8,6 +8,7 @@ export async function createBlog(
   content: string,
   readingTime: string,
   authorId: string,
+  tags : string[],
   thumbnail : string,
   subtitle?: string,
   
@@ -18,6 +19,7 @@ export async function createBlog(
       content,
       readingTime,
       authorId,
+      tags,
       subtitle,
       thumbnail
     },
@@ -61,7 +63,7 @@ export async function getComments(blogId: string) {
     where: { blogId, parentId: null },
     include: {
       _count: {
-        select: { replies: true }, // This will count the number of replies
+        select: { replies: true }, 
       },
       user: true,
     },
@@ -302,3 +304,74 @@ The tone should be conversational and engaging, targeting an audience interested
   return threads;
 
 }
+export async function generateRecommendedContent(blogId: string) {
+  const blog = await getBlogById(blogId);
+  if (!blog) throw new Error("Blog not found");
+
+  // Fetch blogs by the same author
+  const blogsFromAuthor = await prisma.blog.findMany({
+    where: {
+      authorId: blog.authorId,
+      NOT: {
+        id: blogId,
+      },
+    },
+    include: {
+      _count: {
+        select: {
+          comments: true,
+          upvotes: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 10, // Fetch the latest 10 blogs
+  });
+
+  // Fetch blogs by matching tags
+  const blogsByTags = await prisma.blog.findMany({
+    where: {
+      tags: {
+        hasSome: blog.tags, // Match at least one tag from the current blog
+      },
+      NOT: {
+        id: blogId,
+      },
+    },
+    include: {
+      _count: {
+        select: {
+          comments: true,
+          upvotes: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc", 
+    },
+    take: 10, // Fetch the latest 10 blogs
+  });
+
+  // Helper function to calculate the score
+  const calculateScore = (blog: { _count?: { comments: number; upvotes: number } }) => {
+    return (blog._count?.comments || 0) + (blog._count?.upvotes || 0);
+  };
+
+  // Sort by combined comments and upvotes, and take the top 3
+  const recommendedBlogsFromAuthor = blogsFromAuthor
+    .sort((a, b) => calculateScore(b) - calculateScore(a))
+    .slice(0, 3); 
+
+  const recommendedBlogsByTags = blogsByTags
+    .sort((a, b) => calculateScore(b) - calculateScore(a)) 
+    .slice(0, 3); 
+
+ 
+  return {
+    fromAuthor: recommendedBlogsFromAuthor,
+    byTags: recommendedBlogsByTags,
+  };
+}
+export type RecommendedContentType = Awaited<ReturnType<typeof generateRecommendedContent>>;

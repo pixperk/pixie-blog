@@ -14,20 +14,20 @@ datasource db {
 }
 
 model Blog {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   title       String
   subtitle    String?
-  thumbnail   String   @default("https://a3dg9kymej.ufs.sh/f/8azif4ZMinvp6Rn93Yxu3McYpieCbsZjXGPxk2oTOBz0QJEI")
-  content     String   @db.Text
-  publishDate DateTime @default(now())
+  thumbnail   String     @default("https://a3dg9kymej.ufs.sh/f/8azif4ZMinvp6Rn93Yxu3McYpieCbsZjXGPxk2oTOBz0QJEI")
+  content     String     @db.Text
+  publishDate DateTime   @default(now())
   readingTime String
   authorId    String
-  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-
-  comments Comment[]
-  upvotes  Upvote[]
-  Bookmark Bookmark[]
+  author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+  tags        String[]
+  comments    Comment[]
+  upvotes     Upvote[]
+  Bookmark    Bookmark[]
 }
 
 model User {
@@ -86,8 +86,8 @@ model Bookmark {
 }
 
 model Images {
-  id String @id @default(cuid())
-  url String @unique
+  id     String @id @default(cuid())
+  url    String @unique
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

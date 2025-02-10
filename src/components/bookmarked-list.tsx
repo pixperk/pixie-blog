@@ -126,6 +126,18 @@ export default function BookmarksList() {
                 <span className="ml-2">·</span>
                 <span>{formatDistanceToNow(new Date(blog.publishDate), { addSuffix: true })}</span>
               </div>
+              {blog.tags?.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {blog.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 rounded-full text-xs font-semibold bg-dark-gray-800 text-neon-green-400 border border-neon-green-500 hover:bg-dark-gray-700 transition-all duration-300"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex space-x-4 items-center text-sm text-neon-green-500">

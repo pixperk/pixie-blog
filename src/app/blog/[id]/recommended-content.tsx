@@ -7,7 +7,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { generateRecommendedContent, RecommendedContentType } from "@/server/blog";
-import { MessageSquare, ThumbsUp } from "lucide-react"; // Icons for comments and upvotes
+import { MessageSquare, ArrowUpCircle } from "lucide-react"; // Icons for comments and upvotes
+
 
 interface RecommendedContentProps {
   blogId: string;
@@ -48,7 +49,7 @@ export function RecommendedContent({ blogId, author }: RecommendedContentProps) 
       transition={{ duration: 0.5 }}
       className="mt-16 border-t border-neon-green-500 pt-8"
     >
-      <h2 className="text-3xl font-bold text-neon-green-500 mb-6">Recommended for you</h2>
+      <h2 className="text-3xl font-bold text-neon-green-500 mb-6">Try out more</h2>
       <div
         className={`grid ${
           fromAuthorOnly || byTagsOnly ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
@@ -166,7 +167,7 @@ function RecommendedBlogCard({ blog }: RecommendedBlogCardProps) {
 
             {/* Upvotes */}
             <div className="flex items-center space-x-1">
-              <ThumbsUp size={16} className="text-neon-green-400" />
+              <ArrowUpCircle size={16} className="text-neon-green-400" />
               <span>{blog._count.upvotes}</span>
             </div>
           </div>

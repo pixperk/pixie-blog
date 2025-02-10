@@ -82,3 +82,41 @@ export const isUserFollowingAuthor = async (userId: string, authorId: string) =>
 
   return !!user?.following?.length
 }
+
+export async function getUserProfileById(userId : string){
+  const user = await prisma.user.findUnique({
+    where:{
+      id: userId
+    },
+    include:{
+      following: true,
+      followers: true,
+      blogs: {
+        select : {
+          id: true,
+          title: true,
+          content: true,
+          readingTime : true,
+          thumbnail : true,
+          subtitle : true,
+          tags : true,
+          _count:{
+            select:{
+              upvotes: true,
+              comments: true
+            }
+          },
+          createdAt: true,
+        },
+        take : 5,
+        orderBy : {
+          createdAt: 'desc'
+        }
+      }
+    }
+  })
+
+  return user
+}
+
+export type ProfileType = Awaited<ReturnType<typeof getUserProfileById>>;

@@ -17,6 +17,7 @@ model Blog {
   id          String   @id @default(cuid())
   title       String
   subtitle    String?
+  thumbnail   String   @default("https://a3dg9kymej.ufs.sh/f/8azif4ZMinvp6Rn93Yxu3McYpieCbsZjXGPxk2oTOBz0QJEI")
   content     String   @db.Text
   publishDate DateTime @default(now())
   readingTime String

@@ -71,6 +71,7 @@ export function BlogEditor() {
     },
   })
   const [userImages, setUserImages] = useState<string[]>([])
+  const [thumbnailUrl, setThumbnailUrl] = useState<string>("")
 
   const updateReadingTime = useCallback(
     debounce((content) => {
@@ -117,7 +118,7 @@ export function BlogEditor() {
 
     setIsSubmitting(true)
     try {
-      await createBlog(post.title, post.content, post.readingTime, user?.id!, post.subtitle)
+      await createBlog(post.title, post.content, post.readingTime, user?.id!, post.subtitle, thumbnailUrl)
       console.log("Blog post created successfully!")
       router.push("/")
     } catch (error) {
@@ -159,6 +160,11 @@ export function BlogEditor() {
         readingTime={post.readingTime}
         onTitleChange={(title) => setPost((prev) => ({ ...prev, title }))}
         onSubtitleChange={(subtitle) => setPost((prev) => ({ ...prev, subtitle }))}
+        handleImageUpload={handleImageUpload}
+        images={userImages}
+        setImages={setUserImages}
+        thumbnailUrl={thumbnailUrl}
+        setThumbnailUrl={setThumbnailUrl}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

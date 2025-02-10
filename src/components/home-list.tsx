@@ -80,7 +80,7 @@ export default function HomeList() {
         >
           <div className="flex flex-1 space-x-4">
             <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-lg overflow-hidden shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl">
-              <Image src={"/placeholder.png"} alt={blog.title} layout="fill" objectFit="cover" />
+              <Image src={blog.thumbnail} alt={blog.title} layout="fill" objectFit="cover" />
             </div>
             <div className="flex-1 space-y-2">
               <Link href={`/blog/${blog.id}`} className="block">

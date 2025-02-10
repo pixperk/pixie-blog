@@ -1,5 +1,9 @@
 import { Input } from "@/components/ui/input"
 import { format } from "date-fns"
+import { ThumbnailUploader } from "./thumbnail-uploader"
+import { Dispatch, SetStateAction } from "react"
+import { ClientUploadedFileData } from "uploadthing/types"
+import { OurFileRouter } from "@/app/api/uploadthing/core"
 
 interface BlogMetadataProps {
   title: string
@@ -7,7 +11,12 @@ interface BlogMetadataProps {
   publishDate: Date
   readingTime: string
   onTitleChange: (title: string) => void
-  onSubtitleChange: (subtitle: string) => void
+  onSubtitleChange: (subtitle: string) => void,
+  handleImageUpload : (res: ClientUploadedFileData<OurFileRouter>[]) => void
+  images: string[];
+  setImages: Dispatch<SetStateAction<string[]>>;
+  thumbnailUrl : string
+  setThumbnailUrl : Dispatch<SetStateAction<string>>
 }
 
 export function BlogMetadata({
@@ -17,6 +26,11 @@ export function BlogMetadata({
   readingTime,
   onTitleChange,
   onSubtitleChange,
+  handleImageUpload,
+  images,
+  setImages,
+  thumbnailUrl,
+  setThumbnailUrl
 }: BlogMetadataProps) {
   return (
     <div className="space-y-4">
@@ -34,6 +48,12 @@ export function BlogMetadata({
         onChange={(e) => onSubtitleChange(e.target.value)}
         className="text-lg bg-transparent text-gray-200 border-neon-green-400 placeholder-neon-green-400/50"
       />
+      <ThumbnailUploader
+      handleImageUpload={handleImageUpload}
+      images={images}
+      setImages={setImages}
+      thumbnailUrl={thumbnailUrl}
+      setThumbnailUrl={setThumbnailUrl}/>
 
       <div className="flex space-x-4 text-sm text-gray-400">
         <span>{format(publishDate, "MMMM d, yyyy")}</span>

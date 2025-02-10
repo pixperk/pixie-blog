@@ -8,7 +8,8 @@ export async function createBlog(
   content: string,
   readingTime: string,
   authorId: string,
-  subtitle?: string
+  subtitle?: string,
+  thumbnail? : string
 ) {
   await prisma.blog.create({
     data: {
@@ -17,6 +18,7 @@ export async function createBlog(
       readingTime,
       authorId,
       subtitle,
+      thumbnail
     },
   });
 }

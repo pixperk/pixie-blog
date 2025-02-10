@@ -1,13 +1,13 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
-import { generateRecommendedContent, RecommendedContentType } from "@/server/blog";
 import { motion } from "framer-motion";
-import { ArrowUpCircle, MessageSquare } from "lucide-react"; // Icons for comments and upvotes
-import { AuthorInfo } from "@/components/author-info";
+import { formatDistanceToNow } from "date-fns";
+import { generateRecommendedContent, RecommendedContentType } from "@/server/blog";
+import { MessageSquare, ThumbsUp } from "lucide-react"; // Icons for comments and upvotes
 
 interface RecommendedContentProps {
   blogId: string;
@@ -94,7 +94,7 @@ export function RecommendedContent({ blogId, author }: RecommendedContentProps) 
 }
 
 interface RecommendedBlogCardProps {
-  blog: any;
+  blog: RecommendedContentType["fromAuthor"][0] | RecommendedContentType["byTags"][0];
 }
 
 function RecommendedBlogCard({ blog }: RecommendedBlogCardProps) {
@@ -103,7 +103,7 @@ function RecommendedBlogCard({ blog }: RecommendedBlogCardProps) {
       whileHover={{ scale: 1.03 }}
       className="bg-gray-900 rounded-lg overflow-hidden shadow-md hover:shadow-neon-green-400/20 transition-shadow duration-300"
     >
-      <Link href={`/blog/${blog.id}`} className="flex items-center p-4 space-x-4">
+      <Link href={`/blog/${blog.id}`} className="flex items-start p-4 space-x-4">
         {/* Blog Thumbnail */}
         <div className="flex-shrink-0">
           <Image
@@ -123,6 +123,39 @@ function RecommendedBlogCard({ blog }: RecommendedBlogCardProps) {
           {/* Blog Subtitle */}
           <p className="text-sm text-gray-300 mt-1 font-serif italic line-clamp-2">{blog.subtitle}</p>
 
+          {/* Blog Tags */}
+          <div className="flex flex-wrap mt-2 gap-2">
+            {blog.tags.map((tag: string) => (
+              <span
+                key={tag}
+                className="text-xs bg-neon-green-500/10 text-neon-green-400 py-1 px-2 rounded-md"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+
+          {/* Author Info */}
+          <div className="flex items-center mt-3">
+            <Image
+              src={blog.author.avatar || "/placeholder-avatar.svg"}
+              alt={blog.author.name}
+              width={24}
+              height={24}
+              className="rounded-full"
+            /> 
+            <div className="ml-2 text-sm">
+              <p className="text-gray-300 font-medium">{blog.author.name}</p>
+              <p className="text-gray-400 text-xs italic line-clamp-1">{blog.author.bio}</p>
+            </div>
+          </div>
+
+          {/* Created Time and Reading Time */}
+          <div className="text-xs text-gray-400 mt-2">
+            <span>{formatDistanceToNow(new Date(blog.createdAt))} ago</span> •
+            <span> {blog.readingTime}</span>
+          </div>
+
           {/* Comments and Upvotes */}
           <div className="flex items-center space-x-4 text-sm text-gray-400 mt-3">
             {/* Comments */}
@@ -133,11 +166,10 @@ function RecommendedBlogCard({ blog }: RecommendedBlogCardProps) {
 
             {/* Upvotes */}
             <div className="flex items-center space-x-1">
-              <ArrowUpCircle size={16} className="text-neon-green-400" />
+              <ThumbsUp size={16} className="text-neon-green-400" />
               <span>{blog._count.upvotes}</span>
             </div>
           </div>
-          <AuthorInfo author={blog.author} />
         </div>
       </Link>
     </motion.li>

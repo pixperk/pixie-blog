@@ -7,7 +7,6 @@ import { createBlog } from "@/server/blog"
 import "@uiw/react-markdown-preview/markdown.css"
 import "@uiw/react-md-editor/markdown-editor.css"
 import { SaveIcon, SendIcon } from "lucide-react"
-import Select from "react-select"
 import { useTheme } from "next-themes"
 import dynamic from "next/dynamic"
 import { useEffect, useState, useCallback } from "react"
@@ -38,6 +37,7 @@ import type { ClientUploadedFileData } from "uploadthing/types"
 import type { OurFileRouter } from "@/app/api/uploadthing/core"
 import { fetchUserImages, saveImageForUser } from "@/server/image"
 import toast from "react-hot-toast"
+import { SelectTags } from "./select-tags" // Import the new SelectTags component
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false })
 
@@ -52,6 +52,7 @@ interface BlogPost {
     avatar: string
     bio: string
   }
+  tags: string[]
 }
 
 export function BlogEditor() {
@@ -70,11 +71,14 @@ export function BlogEditor() {
       avatar: user?.avatar || "",
       bio: user?.bio || "",
     },
+    tags: [],
   })
   const [userImages, setUserImages] = useState<string[]>([])
-  const [thumbnailUrl, setThumbnailUrl] = useState<string>("https://a3dg9kymej.ufs.sh/f/8azif4ZMinvp6Rn93Yxu3McYpieCbsZjXGPxk2oTOBz0QJEI")
-  const [tags, setTags] = useState<{ value: string; label: string }[]>([]) // For available tags
-  const [selectedTags, setSelectedTags] = useState<string[]>([]) 
+  const [thumbnailUrl, setThumbnailUrl] = useState<string>(
+    "https://a3dg9kymej.ufs.sh/f/8azif4ZMinvp6Rn93Yxu3McYpieCbsZjXGPxk2oTOBz0QJEI",
+  )
+  const [tags, setTags] = useState<{ value: string; label: string }[]>([])
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const updateReadingTime = useCallback(
     debounce((content) => {
       setPost((prev) => ({
@@ -99,23 +103,23 @@ export function BlogEditor() {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const images = await fetchUserImages(user?.id!); 
-        setUserImages(images); 
+        const images = await fetchUserImages(user?.id!)
+        setUserImages(images)
       } catch (error) {
         toast.error(`Failed to fetch images: ${error as Error}`)
       }
-    };
-  
-    if (user?.id) {
-      fetchImages();
     }
-  }, [user]);
+
+    if (user?.id) {
+      fetchImages()
+    }
+  }, [user])
 
   useEffect(() => {
     const fetchTags = async () => {
       try {
         const response = await fetch(
-          "https://api.stackexchange.com/2.3/tags?order=desc&sort=popular&site=stackoverflow"
+          "https://api.stackexchange.com/2.3/tags?order=desc&sort=popular&site=stackoverflow",
         )
         const data = await response.json()
         const fetchedTags = data.items.map((tag: { name: string }) => ({
@@ -129,7 +133,6 @@ export function BlogEditor() {
     }
     fetchTags()
   }, [])
-  
 
   const handleCreate = async () => {
     if (!post.title.trim() || !post.content.trim()) {
@@ -139,7 +142,7 @@ export function BlogEditor() {
 
     setIsSubmitting(true)
     try {
-      await createBlog(post.title, post.content, post.readingTime, user?.id!,  selectedTags, thumbnailUrl,post.subtitle)
+      await createBlog(post.title, post.content, post.readingTime, user?.id!,selectedTags, thumbnailUrl, post.subtitle)
       console.log("Blog post created successfully!")
       router.push("/")
     } catch (error) {
@@ -149,7 +152,7 @@ export function BlogEditor() {
     }
   }
 
-  const handleImageUpload = async(res: ClientUploadedFileData<OurFileRouter>[]) => {
+  const handleImageUpload = async (res: ClientUploadedFileData<OurFileRouter>[]) => {
     const newImageUrl = res[0].url
     await saveImageForUser(newImageUrl, user?.id!)
     setUserImages((prev) => [...prev, newImageUrl])
@@ -162,6 +165,7 @@ export function BlogEditor() {
       content: `${prev.content}\n![Uploaded Image](${imageUrl})`,
     }))
   }
+
 
   return (
     <div className="p-6 bg-gray-900 rounded-lg shadow-xl space-y-6" data-color-mode={theme}>
@@ -199,21 +203,18 @@ export function BlogEditor() {
               setImages={setUserImages}
             />
           </div>
-          <div>
-        <h2 className="text-lg font-semibold text-gray-300 mb-2">Select Tags</h2>
-        <Select
-          options={tags}
-          isMulti
-          onChange={(selectedOptions) => {
-            setSelectedTags(selectedOptions.map((option) => option.value))
-            setPost((prev) => ({ ...prev, tags: selectedOptions.map((option) => option.value) }))
-          }}
-          className="basic-multi-select"
-          classNamePrefix="select"
-          placeholder="Search and select tags..."
-        />
-      </div>
+
+          {/* Add the SelectTags component here */}
+          <SelectTags
+            tags={tags}
+            setTags={setTags}
+            selectedTags={selectedTags}
+            setSelectedTags={setSelectedTags}
+            setPost={setPost}
+          />
+
           <MDEditor
+          maxHeight={480}
             value={post.content}
             color="neon-green-400"
             onChange={(value) => {
@@ -226,9 +227,10 @@ export function BlogEditor() {
           />
         </div>
 
-        <div className="space-y-4 bg-gray-800 p-6 rounded-md border border-neon-green-400 max-h-[480px] overflow-auto">
+        <div className="space-y-4 bg-gray-800 p-6 rounded-md border border-neon-green-400 max-h-[496px] overflow-auto">
           <h2 className="text-xl font-semibold text-neon-green-400">Preview</h2>
           <ReactMarkdown
+            
             remarkPlugins={[remarkGfm]}
             className="text-gray-300 leading-relaxed space-y-6 mt-4"
             components={{

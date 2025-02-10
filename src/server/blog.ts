@@ -317,6 +317,7 @@ export async function generateRecommendedContent(blogId: string) {
       },
     },
     include: {
+      author : true,
       _count: {
         select: {
           comments: true,
@@ -341,6 +342,7 @@ export async function generateRecommendedContent(blogId: string) {
       },
     },
     include: {
+      author : true,
       _count: {
         select: {
           comments: true,

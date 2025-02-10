@@ -110,13 +110,13 @@ export default function BookmarksList() {
             </div>
             <div className="flex-1 space-y-2">
               <Link href={`/blog/${blog.id}`} className="block">
-                <h2 className="text-lg sm:text-xl font-bold text-neon-green-300 transition-colors duration-300 group-hover:text-neon-green-500">
+              <h2 className="text-2xl sm:text-xl font-bold text-neon-green-400 transition-colors duration-300 group-hover:text-neon-green-800">
                   {blog.title}
                 </h2>
               </Link>
-              <p className="text-sm sm:text-base text-neon-green-400 line-clamp-2">
-                {blog.subtitle || blog.content.substring(0, 100)}...
-              </p>
+              {blog.subtitle && (
+                <p className="text-sm font-serif sm:text-base text-neon-green-400 line-clamp-2">{blog.subtitle}</p>
+              )}
               <div className="flex items-center space-x-2 text-neon-green-500 text-sm">
                 <Avatar className="w-6 h-6">
                   <AvatarImage src={blog.author.avatar} alt={blog.author.name} />

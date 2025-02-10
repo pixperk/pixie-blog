@@ -118,6 +118,26 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
               onCommentClick={() => setIsCommentSectionOpen(true)}
             />
           </motion.div>
+        
+          {blog.thumbnail && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="mb-8"
+            >
+              <Image
+                src={blog.thumbnail}
+                alt={`${blog.title} Thumbnail`}
+                width={1200}
+                height={600}
+                className="rounded-2xl shadow-lg w-full h-auto object-cover"
+                priority
+              />
+            </motion.div>
+          )}
+
+         
 
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -160,4 +180,3 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
     </div>
   )
 }
-

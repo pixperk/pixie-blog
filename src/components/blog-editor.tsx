@@ -71,7 +71,7 @@ export function BlogEditor() {
     },
   })
   const [userImages, setUserImages] = useState<string[]>([])
-  const [thumbnailUrl, setThumbnailUrl] = useState<string>("")
+  const [thumbnailUrl, setThumbnailUrl] = useState<string>("https://a3dg9kymej.ufs.sh/f/8azif4ZMinvp6Rn93Yxu3McYpieCbsZjXGPxk2oTOBz0QJEI")
 
   const updateReadingTime = useCallback(
     debounce((content) => {
@@ -118,7 +118,7 @@ export function BlogEditor() {
 
     setIsSubmitting(true)
     try {
-      await createBlog(post.title, post.content, post.readingTime, user?.id!, post.subtitle, thumbnailUrl)
+      await createBlog(post.title, post.content, post.readingTime, user?.id!,  thumbnailUrl,post.subtitle)
       console.log("Blog post created successfully!")
       router.push("/")
     } catch (error) {

@@ -63,13 +63,17 @@ export async function getComments(blogId: string) {
     where: { blogId, parentId: null },
     include: {
       _count: {
-        select: { replies: true }, 
+        select: { replies: true },
       },
       user: true,
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: {
+      replies: { _count: 'desc' }, 
+      createdAt: "desc",
+    },
   });
 }
+
 export async function getReplies(blogId: string, parentId: string) {
   return await prisma.comment.findMany({
     where: { blogId, parentId },

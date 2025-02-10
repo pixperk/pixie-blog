@@ -40,3 +40,45 @@ export async function getUserBySocialId(socialId:string) {
     return user;
 }
 
+export async function toggleFollowAuthor(userId: string, authorId: string) {
+  if (userId === authorId) {
+    throw new Error("You cannot follow yourself.");
+  }
+
+  // Fetch current following status
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      following: {
+        where: { id: authorId },
+      },
+    },
+  });
+
+  const isFollowing = user && user.following && user.following.length;
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      following: isFollowing
+        ? { disconnect: { id: authorId } } // Unfollow
+        : { connect: { id: authorId } },  // Follow
+    },
+  });
+
+  return updatedUser;
+}
+
+
+export const isUserFollowingAuthor = async (userId: string, authorId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      following: {
+        where: { id: authorId },
+      },
+    },
+  });
+
+  return !!user?.following?.length
+}

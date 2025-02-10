@@ -1,13 +1,12 @@
 "use client"
-
-import { use, useEffect, useState } from "react"
-import Image from "next/image"
-import remarkGfm from "remark-gfm"
-import { TracingBeam } from "@/components/tracing-beam"
-import { CommentSection } from "@/components/comment-section"
-import ReactMarkdown from "react-markdown"
-import { type blogType, getBlogById } from "@/server/blog"
-import { motion } from "framer-motion"
+import { use, useEffect, useState } from "react";
+import Image from "next/image";
+import remarkGfm from "remark-gfm";
+import { TracingBeam } from "@/components/tracing-beam";
+import { CommentSection } from "@/components/comment-section";
+import ReactMarkdown from "react-markdown";
+import { type blogType, getBlogById } from "@/server/blog";
+import { motion } from "framer-motion";
 import {
   CustomBlockquote,
   CustomCode,
@@ -23,37 +22,39 @@ import {
   CustomTableCell,
   CustomTableHead,
   CustomTableRow,
-} from "@/components/markdown-components"
-import SkeletonBlogPost from "./SkeletonBlogPost"
-import { SocialInteractions } from "@/components/social-interactions"
-import { Button } from "@/components/ui/button"
-import { MessageSquare } from "lucide-react"
-import { RecommendedContent } from "./recommended-content"
+} from "@/components/markdown-components";
+import SkeletonBlogPost from "./SkeletonBlogPost";
+import { SocialInteractions } from "@/components/social-interactions";
+import { Button } from "@/components/ui/button";
+import { MessageSquare } from "lucide-react";
+import { RecommendedContent } from "./recommended-content";
+import FollowButton from "@/components/follow-button";
+
 
 export default function BlogPost({ params }: { params: Promise<{ id: string }> }) {
-  const [blog, setBlog] = useState<blogType | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [isCommentSectionOpen, setIsCommentSectionOpen] = useState(false)
+  const [blog, setBlog] = useState<blogType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isCommentSectionOpen, setIsCommentSectionOpen] = useState(false);
 
-  const blogId = use(params).id
+  const blogId = use(params).id;
 
   useEffect(() => {
     const fetchBlog = async () => {
       try {
-        const data = await getBlogById(blogId)
-        setBlog(data)
+        const data = await getBlogById(blogId);
+        setBlog(data);
       } catch (error) {
-        console.error("Error fetching blog:", error)
+        console.error("Error fetching blog:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchBlog()
-  }, [blogId])
+    fetchBlog();
+  }, [blogId]);
 
   if (loading) {
-    return <SkeletonBlogPost />
+    return <SkeletonBlogPost />;
   }
 
   if (!blog) {
@@ -61,7 +62,7 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
         <div className="text-gray-400 text-2xl">Blog not found.</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -99,13 +100,14 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
                   <span>{blog.readingTime}</span>
                 </div>
               </div>
+              {/* Add FollowButton component here */}
+              <FollowButton author={blog.author} />
             </div>
             <h1 className="text-4xl font-bold text-neon-green-500 sm:text-6xl leading-tight">{blog.title}</h1>
             {blog.subtitle && (
               <h2 className="text-xl sm:text-2xl font-thin text-neon-green-400 leading-snug mt-2">{blog.subtitle}</h2>
             )}
 
-        
             {blog.tags?.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-4">
                 {blog.tags.map((tag) => (
@@ -133,7 +135,7 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
               onCommentClick={() => setIsCommentSectionOpen(true)}
             />
           </motion.div>
-        
+
           {blog.thumbnail && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -144,7 +146,7 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
               <Image
                 src={blog.thumbnail}
                 alt={`${blog.title} Thumbnail`}
-                width={1200}
+                width={400}
                 height={600}
                 className="rounded-2xl shadow-lg w-full h-auto object-cover"
                 priority
@@ -192,5 +194,5 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
         <RecommendedContent blogId={blogId} author={blog.author} />
       </main>
     </div>
-  )
+  );
 }

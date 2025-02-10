@@ -42,6 +42,8 @@ model User {
   upvotes  Upvote[]
   Bookmark Bookmark[]
   Images   Images[]
+  followers User[]    @relation("UserFollows")
+  following User[]    @relation("UserFollows")
 }
 
 model Comment {

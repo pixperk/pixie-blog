@@ -106,7 +106,7 @@ export function SiteHeader() {
                 />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-gray-900 text-gray-100">
-                <DropdownMenuItem onClick={() => router.push("/profile")}>
+                <DropdownMenuItem onClick={() => router.push(`/profile/${user.id}`)}>
                   <User className="h-4 w-4 mr-2" /> Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push("/bookmarks")}>

@@ -106,7 +106,7 @@ export const ImageUploaderModal: FC<ImageUploaderModalProps> = ({
           </TabsList>
           <TabsContent value="your-images">
             <div className="grid grid-cols-2 gap-4 mt-4">
-              {images.length > 0 ? (
+              {images && images.length ?(
                 images.map((image, index) => (
                   <div key={index} className="relative group">
                     <img

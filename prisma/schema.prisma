@@ -37,6 +37,9 @@ model User {
   email    String     @unique
   bio      String?
   avatar   String
+  github   String?
+  twitter  String?
+  linkedin String?
   blogs    Blog[]
   comments Comment[]
   upvotes  Upvote[]

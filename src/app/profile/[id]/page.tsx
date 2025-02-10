@@ -1,14 +1,16 @@
 "use client"
 
+import FollowButton from "@/components/follow-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useUser } from "@/context/userContext";
 import { getUserProfileById, ProfileType } from "@/server/user";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowRight, Clock, Github, Mail, MessageSquare, ThumbsUp, Twitter, Users } from "lucide-react";
+import { ArrowRight, ArrowUpCircle, Clock, Github, Mail, MessageSquare, Twitter, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
@@ -71,6 +73,7 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
   const [author, setAuthor] = useState<ProfileType | null>();
   const [visibleBlogs, setVisibleBlogs] = useState(5);
   const router = useRouter();
+  const {user} = useUser();
 
   const handleShowMore = () => {
     setVisibleBlogs((prev) => prev + 5);
@@ -117,21 +120,30 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
                   {name}
                 </h1>
                 <div className="flex items-center gap-4">
-                  <SocialLink
+                 { author.github && <SocialLink
                     icon={Github}
-                    href="https://github.com/username"
+                    href={author.github}
                     label="GitHub Profile"
-                  />
-                  <SocialLink
+                  />}
+                 { author.twitter && <SocialLink
                     icon={Twitter}
-                    href="https://twitter.com/username"
+                    href={author.twitter}
                     label="Twitter Profile"
-                  />
+                  />}
+                  
                   <SocialLink
                     icon={Mail}
                     href="mailto:user@example.com"
                     label="Email"
                   />
+                  {/* Edit Button */}
+                { user && userId===user.id ?(  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/profile/${userId}/edit`)}
+                    className="border-neon-green-500/20 hover:bg-neon-green-500/10 text-neon-green-400"
+                  >
+                    Edit Profile
+                  </Button>) : <FollowButton author={author}/>}
                 </div>
               </div>
               <p className="text-gray-400 mt-2 max-w-xl">{bio}</p>
@@ -239,7 +251,7 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
                         {blog.readingTime}
                       </span>
                       <span className="flex items-center gap-1">
-                        <ThumbsUp size={14} />
+                        <ArrowUpCircle size={14} />
                         {blog._count.upvotes}
                       </span>
                       <span className="flex items-center gap-1">

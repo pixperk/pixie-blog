@@ -1,5 +1,6 @@
 import { login } from "@/server/user";
 import { initializeApp } from "firebase/app";
+
 import {
   Auth,
   getAuth,
@@ -20,6 +21,9 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const firebaseApp = initializeApp(firebaseConfig);
+
+
+
 
 export const loginWithGoogle = async () => {
   const provider = new GoogleAuthProvider();

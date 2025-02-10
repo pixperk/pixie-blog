@@ -3,6 +3,7 @@ import { Check, Plus, Loader2 } from "lucide-react";
 import { User } from "@prisma/client";
 import { isUserFollowingAuthor, toggleFollowAuthor } from "@/server/user";
 import { useUser } from "@/context/userContext";
+import { auth } from "@/lib/firebase";
 
 const FollowButton = ({ author }: { author: User }) => {
   const [isFollowing, setIsFollowing] = useState(false);
@@ -20,10 +21,12 @@ const FollowButton = ({ author }: { author: User }) => {
   }, [user, author.id]);
 
   const handleFollowToggle = async () => {
-    if (!user || user.id === author.id) return; // Prevent self-following
+    if (!user || user.id === author.id) return;
     setLoading(true);
     try {
-      await toggleFollowAuthor(user.id, author.id);
+      const idToken = await auth.currentUser?.getIdToken()
+      const userUid = auth.currentUser?.uid
+      await toggleFollowAuthor(user.id, author.id, userUid!, idToken!);
       setIsFollowing((prev) => !prev);
     } catch (error) {
       console.error("Error toggling follow:", error);

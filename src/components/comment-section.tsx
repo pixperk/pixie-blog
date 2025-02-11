@@ -56,11 +56,14 @@ export function CommentSection({
           socialId: new Date().toISOString(),
           bio: null,
           email: new Date().toISOString(),
+          github : "",
+          twitter : "",
+          linkedin : "",
         },
       }
       setComments([optimisticComment, ...comments])
       setNewComment("")
-      const serverComment = (await addComment(newComment, user.id, blogId)) as Comment
+      const serverComment = (await addComment(newComment, user.id, blogId, user?.uid!, user?.idToken!)) as Comment
       setComments((prevComments) => [{ ...serverComment, user: optimisticComment.user }, ...prevComments.slice(1)])
     }
   }
@@ -172,13 +175,16 @@ function CommentItem({
           socialId: new Date().toISOString(),
           bio: null,
           email: new Date().toISOString(),
+          github : "",
+          twitter : "",
+          linkedin : "",
         },
       }
       setReplies([optimisticReply, ...replies])
       setReply("")
       setShowReplyBox(false)
       setShowReplies(true)
-      const serverReply = (await addReply(reply, user.id, blogId, comment.id)) as Comment
+      const serverReply = (await addReply(reply, user.id, blogId, comment.id, user.uid!, user.idToken!)) as Comment
       setReplies((prevReplies) => [{ ...serverReply, user: optimisticReply.user }, ...prevReplies.slice(1)])
     }
   }

@@ -142,7 +142,7 @@ export function BlogEditor() {
 
     setIsSubmitting(true)
     try {
-      await createBlog(post.title, post.content, post.readingTime, user?.id!,selectedTags, thumbnailUrl, post.subtitle)
+      await createBlog(post.title, post.content, post.readingTime, user?.id!,selectedTags, thumbnailUrl,user?.idToken!, user?.uid!, post.subtitle)
       console.log("Blog post created successfully!")
       router.push("/")
     } catch (error) {

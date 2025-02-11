@@ -1,32 +1,69 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { verifyIdTokenWithoutAdmin } from "@/lib/firebaseAuthVerify";
+import { redis } from "@/lib/redis";
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { z, ZodError } from "zod";
 
+const createBlogSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(1, "Content is required"),
+  readingTime: z.string().min(1, "Reading time is required"),
+  authorId: z.string().cuid("Invalid author ID format"),
+  tags: z.array(z.string()).nonempty("Tags must contain at least one tag"),
+  thumbnail: z.string().url("Thumbnail must be a valid URL"),
+  subtitle: z.string().optional(),
+});
+
+// Function with zod validation
 export async function createBlog(
   title: string,
   content: string,
   readingTime: string,
   authorId: string,
-  tags : string[],
-  thumbnail : string,
-  subtitle?: string,
-  
+  tags: string[],
+  thumbnail: string,
+  idToken: string,
+  uid: string,
+  subtitle?: string
 ) {
-  await prisma.blog.create({
-    data: {
+  // Validate the input data
+  try {
+    const validatedData = createBlogSchema.parse({
       title,
       content,
       readingTime,
       authorId,
       tags,
+      thumbnail,
       subtitle,
-      thumbnail
-    },
-  });
+    });
+
+    const decodedToken = await verifyIdTokenWithoutAdmin(idToken);
+    if (decodedToken.user_id !== uid) {
+      throw new Error("Unauthorized user");
+    }
+
+    await redis.del("trendingBlogs");
+    
+    await prisma.blog.create({
+      data: validatedData,
+    });
+  } catch (error) {
+    console.error("Error during blog creation:", error);
+    throw new Error(
+      error instanceof ZodError ? error.message : "Unable to create blog"
+    );
+  }
 }
 
 export async function getBlogById(id: string) {
+  //cache the blog by redis
+  const cachedBlog = await redis.get(`blog:${id}`);
+  if (cachedBlog) {
+    return JSON.parse(cachedBlog);
+  }
   const blog = await prisma.blog.findUnique({
     where: {
       id,
@@ -38,28 +75,58 @@ export async function getBlogById(id: string) {
       },
     },
   });
-
+  await redis.set(`blog:${id}`, JSON.stringify(blog)); 
   return blog;
 }
 
 export type blogType = Awaited<ReturnType<typeof getBlogById>>;
 
+const addCommentSchema = z.object({
+  content: z.string().min(1, "Comment content is required"),
+  userId: z.string().cuid("Invalid user ID format"),
+  blogId: z.string().cuid("Invalid blog ID format"),
+});
+
 export async function addComment(
   content: string,
   userId: string,
-  blogId: string
+  blogId: string,
+  uid: string,
+  idToken: string
 ) {
-  return await prisma.comment.create({
-    data: {
-      content,
-      userId,
-      blogId,
-    },
+
+  try{
+  const validatedData = addCommentSchema.parse({
+    content,
+    userId,
+    blogId,
   });
+
+  const decodedToken = await verifyIdTokenWithoutAdmin(idToken);
+  if (decodedToken.user_id !== uid) {
+    throw new Error("Unauthorized user");
+  }
+
+  //invalidate the cache
+  await redis.del(`blog:${blogId}`);
+  await redis.del(`comments:${blogId}`);
+
+  return await prisma.comment.create({
+    data: validatedData,
+  });}catch(error){
+    console.error("Error during comment creation:", error);
+    throw new Error(
+      error instanceof ZodError ? error.message : "Unable to create comment"
+    );
+  }
 }
 
 export async function getComments(blogId: string) {
-  return await prisma.comment.findMany({
+  const cachedComments = await redis.get(`comments:${blogId}`);
+  if (cachedComments) {
+    return JSON.parse(cachedComments);
+  }
+  const comments =  await prisma.comment.findMany({
     where: { blogId, parentId: null },
     include: {
       _count: {
@@ -68,14 +135,23 @@ export async function getComments(blogId: string) {
       user: true,
     },
     orderBy: {
-      replies: { _count: 'desc' }, 
-      createdAt: "desc",
-    },
+      replies : {
+        _count : "desc"
+      }
+    }
+    
+    
   });
+  await redis.set(`comments:${blogId}`, JSON.stringify(comments));
+  return comments;
 }
 
 export async function getReplies(blogId: string, parentId: string) {
-  return await prisma.comment.findMany({
+  const cachedReplies = await redis.get(`replies:${blogId}:${parentId}`);
+  if (cachedReplies) {
+    return JSON.parse(cachedReplies);
+  }
+  const replies =  await prisma.comment.findMany({
     where: { blogId, parentId },
     include: {
       _count: {
@@ -85,33 +161,64 @@ export async function getReplies(blogId: string, parentId: string) {
     },
     orderBy: { createdAt: "desc" },
   });
+  await redis.set(`replies:${blogId}:${parentId}`, JSON.stringify(replies));
+  return replies;
 }
 
 type commentArrayType = Awaited<ReturnType<typeof getComments>>;
 export type CommentType = commentArrayType[number];
 
+
+//validate reply schema
+const addReplySchema = z.object({
+  content: z.string().min(1, "Reply content is required"),
+  userId: z.string().cuid("Invalid user ID format"),
+  blogId: z.string().cuid("Invalid blog ID format"),
+  parentId: z.string().cuid("Invalid parent ID format"),
+});
+
 export async function addReply(
   content: string,
   userId: string,
   blogId: string,
-  parentId: string
+  parentId: string,
+  uid: string,
+  idToken: string
 ) {
+
+  const validatedData = addReplySchema.parse({
+    content,
+    userId,
+    blogId,
+    parentId,
+  });
+  //check if user
+  const decodedToken = await verifyIdTokenWithoutAdmin(idToken);
+  if (decodedToken.user_id !== uid) {
+    throw new Error("Unauthorized user");
+  }
+  //invalidate the cache
+  await redis.del(`blog:${blogId}`);
+  await redis.del(`comments:${blogId}`);
+  await redis.del(`replies:${blogId}:${parentId}`);
+
   return await prisma.comment.create({
-    data: {
-      content,
-      userId,
-      blogId,
-      parentId,
-    },
+    data: validatedData,
   });
 }
 
-export async function upvote(blogId: string, userId: string) {
+
+export async function upvote(blogId: string, userId: string, uid: string, idToken: string) {
   try {
     const upvote = await prisma.upvote.findUnique({
       where: { userId_blogId: { userId, blogId } },
     });
-
+    //check if user
+    const decodedToken = await verifyIdTokenWithoutAdmin(idToken);
+    if (decodedToken.user_id !== uid) {
+      throw new Error("Unauthorized user");
+    }
+    await redis.del(`blog:${blogId}`);
     if (upvote) {
       await prisma.$transaction([
         prisma.upvote.delete({ where: { id: upvote.id } }),
@@ -136,11 +243,17 @@ export async function hasUserUpvoted(blogId: string, userId: string) {
 
   return !!upvote;
 }
-export async function addBookmark(blogId: string, userId: string) {
+export async function addBookmark(blogId: string, userId: string,uid: string, idToken: string) {
   try {
+    const decodedToken = await verifyIdTokenWithoutAdmin(idToken);
+    if (decodedToken.user_id !== uid) {
+      throw new Error("Unauthorized user");
+    }
     const bookmark = await prisma.bookmark.findUnique({
       where: { userId_blogId: { userId, blogId } },
     });
+
+    await redis.del(`blog:${blogId}`);
 
     if (bookmark) {
       await prisma.$transaction([
@@ -160,6 +273,7 @@ export async function addBookmark(blogId: string, userId: string) {
 }
 
 export async function hasUserBookmarked(blogId: string, userId: string) {
+  
   const bookmark = await prisma.bookmark.findUnique({
     where: { userId_blogId: { userId, blogId } },
   });
@@ -167,15 +281,23 @@ export async function hasUserBookmarked(blogId: string, userId: string) {
   return !!bookmark;
 }
 
-function calculateTrendingScore(createdAt: Date, comments: number, upvotes: number): number {
-  const ageInHours = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60);
-  const recencyWeight = 1 / Math.log2(ageInHours + 2); 
-  const engagementWeight = comments * 2 + upvotes; 
+function calculateTrendingScore(
+  createdAt: Date,
+  comments: number,
+  upvotes: number
+): number {
+  const ageInHours =
+    (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60);
+  const recencyWeight = 1 / Math.log2(ageInHours + 2);
+  const engagementWeight = comments * 2 + upvotes;
 
   return recencyWeight * engagementWeight;
 }
 
 export async function fetchTrendingBlogs(page: number = 1, limit: number = 5) {
+  const cachedBlogs = await redis.get("trendingBlogs");
+  if (cachedBlogs) {
+    return JSON.parse(cachedBlogs)}
   const blogs = await prisma.blog.findMany({
     include: {
       author: true,
@@ -184,14 +306,13 @@ export async function fetchTrendingBlogs(page: number = 1, limit: number = 5) {
       },
     },
     orderBy: {
-      createdAt: "desc", 
+      createdAt: "desc",
     },
     skip: (page - 1) * limit,
     take: limit,
   });
 
- 
-  const scoredBlogs = blogs.map(blog => ({
+  const scoredBlogs = blogs.map((blog) => ({
     ...blog,
     score: calculateTrendingScore(
       blog.createdAt,
@@ -200,15 +321,12 @@ export async function fetchTrendingBlogs(page: number = 1, limit: number = 5) {
     ),
   }));
 
-
   scoredBlogs.sort((a, b) => b.score - a.score);
 
-  return scoredBlogs.slice(0, limit);
+  const trendingBlogs =  scoredBlogs.slice(0, limit);
+  await redis.set("trendingBlogs", JSON.stringify(trendingBlogs));
+  return trendingBlogs;
 }
-
-
-
-
 
 export type BlogType = Awaited<ReturnType<typeof fetchTrendingBlogs>>;
 
@@ -267,10 +385,10 @@ export async function generateBlogThread(blogId: string, link: string) {
     description: "List of tweet contents for the thread",
     type: SchemaType.ARRAY,
     items: {
-        type: SchemaType.STRING,
-        description: "Content of a single tweet" 
-    }
-};
+      type: SchemaType.STRING,
+      description: "Content of a single tweet",
+    },
+  };
 
   const blog = await getBlogById(blogId);
 
@@ -304,9 +422,8 @@ The tone should be conversational and engaging, targeting an audience interested
   });
 
   const threadString = await threadModel.generateContent(prompt);
-  const threads : string[] = JSON.parse((threadString.response.text()));
+  const threads: string[] = JSON.parse(threadString.response.text());
   return threads;
-
 }
 export async function generateRecommendedContent(blogId: string) {
   const blog = await getBlogById(blogId);
@@ -321,7 +438,7 @@ export async function generateRecommendedContent(blogId: string) {
       },
     },
     include: {
-      author : true,
+      author: true,
       _count: {
         select: {
           comments: true,
@@ -346,7 +463,7 @@ export async function generateRecommendedContent(blogId: string) {
       },
     },
     include: {
-      author : true,
+      author: true,
       _count: {
         select: {
           comments: true,
@@ -355,29 +472,32 @@ export async function generateRecommendedContent(blogId: string) {
       },
     },
     orderBy: {
-      createdAt: "desc", 
+      createdAt: "desc",
     },
     take: 10, // Fetch the latest 10 blogs
   });
 
   // Helper function to calculate the score
-  const calculateScore = (blog: { _count?: { comments: number; upvotes: number } }) => {
+  const calculateScore = (blog: {
+    _count?: { comments: number; upvotes: number };
+  }) => {
     return (blog._count?.comments || 0) + (blog._count?.upvotes || 0);
   };
 
   // Sort by combined comments and upvotes, and take the top 3
   const recommendedBlogsFromAuthor = blogsFromAuthor
     .sort((a, b) => calculateScore(b) - calculateScore(a))
-    .slice(0, 3); 
+    .slice(0, 3);
 
   const recommendedBlogsByTags = blogsByTags
-    .sort((a, b) => calculateScore(b) - calculateScore(a)) 
-    .slice(0, 3); 
+    .sort((a, b) => calculateScore(b) - calculateScore(a))
+    .slice(0, 3);
 
- 
   return {
     fromAuthor: recommendedBlogsFromAuthor,
     byTags: recommendedBlogsByTags,
   };
 }
-export type RecommendedContentType = Awaited<ReturnType<typeof generateRecommendedContent>>;
+export type RecommendedContentType = Awaited<
+  ReturnType<typeof generateRecommendedContent>
+>;

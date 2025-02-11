@@ -9,6 +9,8 @@ interface User {
   name: string;
   avatar: string;
   bio: string;
+  idToken : string;
+  uid : string;
   images : string[]
 }
 
@@ -28,6 +30,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
       if (currentUser) {
         try {
+          const idToken = await currentUser.getIdToken();
+          const uid = currentUser.uid;
           const userData = await getUserBySocialId(currentUser.uid);
           const images = userData?.Images.map((image)=>image.url) || []
           setUser({
@@ -35,6 +39,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             name: userData?.name || "Unknown",
             avatar: userData?.avatar || "",
             bio: userData?.bio || "",
+            idToken,
+            uid,
             images
           });
 

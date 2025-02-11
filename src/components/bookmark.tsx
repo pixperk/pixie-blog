@@ -36,7 +36,7 @@ export function Bookmark({ blogId }: BookmarkProps) {
 
     startTransition(async () => {
       try {
-        const response = await addBookmark(blogId, userId);
+        const response = await addBookmark(blogId, userId, user.uid, user.idToken);
         if (response.message !== "bookmark added") {
           setIsBookmarked(false); // Revert on failure
         }

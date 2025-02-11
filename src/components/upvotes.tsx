@@ -8,6 +8,7 @@ import { CircleArrowUp, Loader2 } from "lucide-react";
 import { useState, useTransition, useEffect } from "react";
 import { motion } from "framer-motion";
 import { formatCount } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 interface UpvotesProps {
   blogId: string;
@@ -26,10 +27,11 @@ export function Upvotes({ blogId, initialUpvotes }: UpvotesProps) {
     }
   }, [user, blogId]);
 
+  const router = useRouter();
+
   const handleUpvote = () => {
     if (!user) {
-      alert("You must be logged in to upvote");
-      return;
+      return router.push("/login");
     }
 
     // Optimistic UI Update
@@ -38,7 +40,7 @@ export function Upvotes({ blogId, initialUpvotes }: UpvotesProps) {
 
     startTransition(async () => {
       try {
-        const response = await upvote(blogId, user.id);
+        const response = await upvote(blogId, user.id, user.uid, user.idToken);
         if (response.message === "Upvote added") {
           setHasUpvoted(true);
         } else {
@@ -63,7 +65,9 @@ export function Upvotes({ blogId, initialUpvotes }: UpvotesProps) {
         disabled={isPending}
         aria-label="Upvote this post"
         className={`group rounded-full border-neon-green-500/50 p-2 transition-all duration-200 flex items-center justify-center ${
-          hasUpvoted ? "bg-neon-green-500 text-white" : "text-neon-green-500 bg-transparent"
+          hasUpvoted
+            ? "bg-neon-green-500 text-white"
+            : "text-neon-green-500 bg-transparent"
         } hover:bg-neon-green-500/20`}
       >
         {isPending ? (
@@ -76,7 +80,9 @@ export function Upvotes({ blogId, initialUpvotes }: UpvotesProps) {
           >
             <CircleArrowUp
               className={`h-5 w-5 transition-all ${
-                hasUpvoted ? "fill-neon-green-500 stroke-white" : "stroke-neon-green-500"
+                hasUpvoted
+                  ? "fill-neon-green-500 stroke-white"
+                  : "stroke-neon-green-500"
               }`}
             />
           </motion.div>

@@ -126,12 +126,12 @@ function RecommendedBlogCard({ blog }: RecommendedBlogCardProps) {
 
           {/* Blog Tags */}
           <div className="flex flex-wrap mt-2 gap-2">
-            {blog.tags.map((tag: string) => (
+            {blog.tags.map((tag: {id : string, blogId : string, tag : string}) => (
               <span
-                key={tag}
+                key={tag.id}
                 className="text-xs bg-neon-green-500/10 text-neon-green-400 py-1 px-2 rounded-md"
               >
-                #{tag}
+                #{tag.tag}
               </span>
             ))}
           </div>

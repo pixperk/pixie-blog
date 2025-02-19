@@ -290,7 +290,7 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
                             key={index}
                             className="bg-neon-green-500/20 text-neon-green-400 hover:bg-neon-green-500/30"
                           >
-                            {tag}
+                            {tag.tag}
                           </Badge>
                         ))}
                       </div>

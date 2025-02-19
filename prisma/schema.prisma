@@ -24,10 +24,18 @@ model Blog {
   authorId    String
   author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt   DateTime   @default(now())
-  tags        String[]
+  tags        BlogTag[]
   comments    Comment[]
   upvotes     Upvote[]
   Bookmark    Bookmark[]
+}
+
+
+model BlogTag {
+  id      String  @id @default(uuid())
+  blogId  String
+  tag     String
+  blog    Blog    @relation(fields: [blogId], references: [id], onDelete: Cascade)
 }
 
 model User {

@@ -136,17 +136,17 @@ export function BlogEditor() {
 
   const handleCreate = async () => {
     if (!post.title.trim() || !post.content.trim()) {
-      console.error("Title and content cannot be empty.")
+      toast.error("Title and content cannot be empty.")
       return
     }
 
     setIsSubmitting(true)
     try {
-      await createBlog(post.title, post.content, post.readingTime, user?.id!,selectedTags, thumbnailUrl,user?.idToken!, user?.uid!, post.subtitle)
-      console.log("Blog post created successfully!")
+      await createBlog(post.title, post.content, post.readingTime, user?.id!, thumbnailUrl,user?.idToken!, user?.uid!,selectedTags, post.subtitle)
+      toast.success("Blog post created successfully!")
       router.push("/")
     } catch (error) {
-      console.error("Failed to create the blog post. Please try again.")
+      toast.error("Failed to create the blog post. Please try again.")
     } finally {
       setIsSubmitting(false)
     }

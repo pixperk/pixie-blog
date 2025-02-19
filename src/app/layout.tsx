@@ -9,6 +9,7 @@ import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core"; 
 import { Toaster } from "react-hot-toast";
+import { CategoriesProvider } from "@/context/categoryContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,11 +25,12 @@ export default function RootLayout({
 }) {
   return (
     <UserProvider>
+      <CategoriesProvider>
     <html lang="en" className="dark h-full">
       <body
         className={cn(
           inter.className,
-          "flex flex-col min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-gray-100 antialiased"
+          "flex flex-col min-h-screen  bg-gray-900 text-gray-100 antialiased"
         )}
       >
          <NextSSRPlugin
@@ -60,6 +62,7 @@ export default function RootLayout({
         />
       </body>
     </html>
+    </CategoriesProvider>
     </UserProvider>
   );
 }

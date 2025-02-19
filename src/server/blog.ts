@@ -11,31 +11,29 @@ const createBlogSchema = z.object({
   content: z.string().min(1, "Content is required"),
   readingTime: z.string().min(1, "Reading time is required"),
   authorId: z.string().cuid("Invalid author ID format"),
-  tags: z.array(z.string()).nonempty("Tags must contain at least one tag"),
   thumbnail: z.string().url("Thumbnail must be a valid URL"),
   subtitle: z.string().optional(),
 });
 
 // Function with zod validation
+
 export async function createBlog(
   title: string,
   content: string,
   readingTime: string,
   authorId: string,
-  tags: string[],
   thumbnail: string,
   idToken: string,
   uid: string,
+  tags: string[],
   subtitle?: string
 ) {
-  // Validate the input data
   try {
     const validatedData = createBlogSchema.parse({
       title,
       content,
       readingTime,
       authorId,
-      tags,
       thumbnail,
       subtitle,
     });
@@ -44,10 +42,31 @@ export async function createBlog(
     if (decodedToken.user_id !== uid) {
       throw new Error("Unauthorized user");
     }
-    
-    await prisma.blog.create({
-      data: validatedData,
+
+    // Create blog and link tags in a single transaction
+    await prisma.$transaction(async (tx) => {
+      const blog = await tx.blog.create({
+        data: {
+          title : validatedData.title,
+          content : validatedData.content,
+          readingTime : validatedData.readingTime,
+          authorId : validatedData.authorId,
+          thumbnail : validatedData.thumbnail,
+          subtitle : validatedData.subtitle
+        },
+      });
+
+      // Insert tags into BlogTag table
+      if (tags.length > 0) {
+        await tx.blogTag.createMany({
+          data: tags.map(tag => ({
+            blogId: blog.id,
+            tag,
+          })),
+        });
+      }
     });
+
   } catch (error) {
     console.error("Error during blog creation:", error);
     throw new Error(
@@ -296,6 +315,8 @@ export async function fetchTrendingBlogs(page: number = 1, limit: number = 5) {
   const blogs = await prisma.blog.findMany({
     include: {
       author: true,
+      tags : true,
+
       _count: {
         select: { comments: true, upvotes: true },
       },
@@ -334,6 +355,7 @@ export async function fetchBookmarked(
       blog: {
         include: {
           author: true,
+          tags : true,
           _count: {
             select: { comments: true, upvotes: true },
           },
@@ -422,53 +444,51 @@ export async function generateRecommendedContent(blogId: string) {
   const blog = await getBlogById(blogId);
   if (!blog) throw new Error("Blog not found");
 
-  // Fetch blogs by the same author
-  const blogsFromAuthor = await prisma.blog.findMany({
-    where: {
-      authorId: blog.authorId,
-      NOT: {
-        id: blogId,
+  const [blogsFromAuthor, blogsByTags] = await prisma.$transaction([
+    // Fetch blogs by the same author
+    prisma.blog.findMany({
+      where: {
+        authorId: blog.authorId,
+        NOT: { id: blogId },
       },
-    },
-    include: {
-      author: true,
-      _count: {
-        select: {
-          comments: true,
-          upvotes: true,
+      include: {
+        author: true,
+        tags : true,
+        _count: {
+          select: {
+            comments: true,
+            upvotes: true,
+          },
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 10, // Fetch the latest 10 blogs
-  });
+      orderBy: { createdAt: "desc" },
+      take: 10, // Fetch the latest 10 blogs
+    }),
 
-  // Fetch blogs by matching tags
-  const blogsByTags = await prisma.blog.findMany({
-    where: {
-      tags: {
-        hasSome: blog.tags, // Match at least one tag from the current blog
+    // Fetch blogs by matching tags
+    prisma.blog.findMany({
+      where: {
+        tags: {
+          some: {
+            tag: { in: blog.tags }, // Match at least one tag
+          },
+        },
+        NOT: { id: blogId },
       },
-      NOT: {
-        id: blogId,
-      },
-    },
-    include: {
-      author: true,
-      _count: {
-        select: {
-          comments: true,
-          upvotes: true,
+      include: {
+        author: true,
+        tags : true,
+        _count: {
+          select: {
+            comments: true,
+            upvotes: true,
+          },
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 10, // Fetch the latest 10 blogs
-  });
+      orderBy: { createdAt: "desc" },
+      take: 10, // Fetch the latest 10 blogs
+    }),
+  ]);
 
   // Helper function to calculate the score
   const calculateScore = (blog: {
@@ -491,75 +511,219 @@ export async function generateRecommendedContent(blogId: string) {
     byTags: recommendedBlogsByTags,
   };
 }
+
 export type RecommendedContentType = Awaited<
   ReturnType<typeof generateRecommendedContent>
 >;
 
 
 
-  export async function getSearchedBlogs(query: string, page: number = 1) {
-    const pageSize = 5
-    const isFirstPage = page === 1
-    const cacheKey = `search:${query}:page:${page}`
-  
-    const cachedResults = await redis.get(cacheKey)
-    if (cachedResults) {
-      return JSON.parse(cachedResults)
-    }
-  
-    const [blogs, authors] = await Promise.all([
-      prisma.blog.findMany({
-        where: {
-          OR: [
-            { title: { contains: query, mode: "insensitive" } },
-            { subtitle: { contains: query, mode: "insensitive" } },
-            { author: { name: { contains: query, mode: "insensitive" } } },
-            { tags: { has: query } },
-          ],
-        },
-        select: {
-          id: true,
-          title: true,
-          subtitle: true,
-          thumbnail : true,
-          author: {
-            select: {
-              id: true,
-              name: true,
-              avatar: true,
-            },
-          },
-        },
-        take: isFirstPage ? 10 : pageSize,
-        skip: isFirstPage ? 0 : (page - 1) * pageSize + 5,
-      }),
-      prisma.user.findMany({
-        where: {
-          name: { contains: query, mode: "insensitive" },
-        },
-        select: {
-          id: true,
-          name: true,
-          avatar: true,
-          bio: true,
-          _count: {
-            select: {
-              blogs: true,
-            },
-          },
-        },
-        take: 5,
-      }),
-    ])
-  
-    const results = {
-      blogs,
-      authors,
-      hasMore: blogs.length === (isFirstPage ? 10 : pageSize),
-    }
-  
-    await redis.set(cacheKey, JSON.stringify(results), "EX", 3600)
-  
-    return results
+export async function getSearchedBlogs(query: string, page: number = 1) {
+  const pageSize = 5;
+  const isFirstPage = page === 1;
+  const cacheKey = `search:${query}:page:${page}`;
+
+  // Check Redis cache first
+  const cachedResults = await redis.get(cacheKey);
+  if (cachedResults) {
+    return JSON.parse(cachedResults);
   }
 
+  // Fetch blogs and authors in parallel
+  const [blogs, authors] = await Promise.all([
+    prisma.blog.findMany({
+      where: {
+        OR: [
+          { title: { contains: query, mode: "insensitive" } },
+          { subtitle: { contains: query, mode: "insensitive" } },
+          { author: { name: { contains: query, mode: "insensitive" } } },
+          { tags: { some: { tag: { contains: query, mode: "insensitive" } } } }, // Fixed tag search
+        ],
+      },
+      select: {
+        id: true,
+        title: true,
+        subtitle: true,
+        thumbnail: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+      },
+      take: isFirstPage ? 10 : pageSize,
+      skip: (page - 1) * pageSize, // Fixed pagination logic
+    }),
+    prisma.user.findMany({
+      where: {
+        name: { contains: query, mode: "insensitive" },
+      },
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+        bio: true,
+        _count: {
+          select: {
+            blogs: true,
+          },
+        },
+      },
+      take: 5,
+    }),
+  ]);
+
+  const results = {
+    blogs,
+    authors,
+    hasMore: blogs.length === (isFirstPage ? 10 : pageSize),
+  };
+
+  // Cache the results for 1 hour
+  await redis.set(cacheKey, JSON.stringify(results), "EX", 3600);
+
+  return results;
+}
+
+
+
+
+export async function getTrendingTags() : Promise<string[]>{
+  
+const TRENDING_TAGS_CACHE_KEY = 'trending_tags';
+  // Check cache first
+  const cachedTags = await redis.get(TRENDING_TAGS_CACHE_KEY);
+  if (cachedTags) return JSON.parse(cachedTags);
+
+  // Fetch tags with aggregated upvotes and comments from related blogs
+  const trendingTags = await prisma.blogTag.findMany({
+    select: {
+      tag: true,
+      blog: {
+        select: {
+          _count: {
+            select: { upvotes: true, comments: true },
+          },
+        },
+      },
+    },
+  });
+
+  // Calculate scores (upvotes + comments)
+  const tagScores = trendingTags.reduce((acc, tag) => {
+    const score = (tag.blog._count.upvotes ?? 0) + (tag.blog._count.comments ?? 0);
+    acc[tag.tag] = (acc[tag.tag] || 0) + score;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Get top 6 tags based on scores
+  const topTags = Object.entries(tagScores)
+    .sort(([, scoreA], [, scoreB]) => scoreB - scoreA)
+    .slice(0, 6)
+    .map(([tag]) => tag);
+
+  // Cache result in Redis for 10 minutes
+  await redis.set(TRENDING_TAGS_CACHE_KEY, JSON.stringify(topTags), 'EX', 600);
+
+  return topTags;
+}
+
+export async function fetchBlogsByTag(
+  tagName: string,
+  page: number = 1,
+  limit: number = 5
+) {
+  const blogs = await prisma.blog.findMany({
+    where: {
+      tags: {
+        some: {
+          tag: {
+            equals: tagName,
+            mode: "insensitive",
+          },
+        },
+      },
+    },
+    include: {
+      author: true,
+      tags: true,
+      _count: {
+        select: { comments: true, upvotes: true },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    skip: (page - 1) * limit,
+    take: limit,
+  });
+
+  const scoredBlogs = blogs.map((blog) => ({
+    ...blog,
+    score: calculateTrendingScore(
+      blog.createdAt,
+      blog._count.comments,
+      blog._count.upvotes
+    ),
+  }));
+
+  scoredBlogs.sort((a, b) => b.score - a.score);
+
+  return scoredBlogs.slice(0, limit);
+}
+
+
+export async function fetchFollowedBlogs(
+  loggedInUserId: string,
+  page: number = 1,
+  limit: number = 5
+) {
+ 
+  const user = await prisma.user.findUnique({
+    where: { id: loggedInUserId },
+    include: { following: true },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  // Extract the IDs of followed users
+  const followedUserIds = user.following.map((followedUser) => followedUser.id);
+
+  // Query blogs where the author is in the followed list
+  const blogs = await prisma.blog.findMany({
+    where: {
+      authorId: {
+        in: followedUserIds,
+      },
+    },
+    include: {
+      author: true,
+      tags: true,
+      _count: {
+        select: { comments: true, upvotes: true },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    skip: (page - 1) * limit,
+    take: limit,
+  });
+
+  const scoredBlogs = blogs.map((blog) => ({
+    ...blog,
+    score: calculateTrendingScore(
+      blog.createdAt,
+      blog._count.comments,
+      blog._count.upvotes
+    ),
+  }));
+
+  scoredBlogs.sort((a, b) => b.score - a.score);
+
+  return scoredBlogs.slice(0, limit);
+}

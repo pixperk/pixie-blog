@@ -59,14 +59,14 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
 
   if (!blog) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="text-gray-400 text-2xl">Blog not found.</div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div className="flex min-h-screen flex-col">
       <TracingBeam />
 
       <main className="relative mx-auto w-full max-w-5xl px-6 py-10 sm:px-8 lg:px-12">
@@ -110,12 +110,12 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
 
             {blog.tags?.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-4">
-                {blog.tags.map((tag) => (
+                {blog.tags.map((tag : {id : string, blogId:string, tag : string}) => (
                   <span
-                    key={tag}
+                    key={tag.id}
                     className="px-3 py-1 text-sm font-medium text-white bg-neon-green-700 rounded-full border border-neon-green-400"
                   >
-                    {tag}
+                    {tag.tag}
                   </span>
                 ))}
               </div>

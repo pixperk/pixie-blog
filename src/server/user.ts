@@ -37,16 +37,22 @@ export const login = async (userData: UserData) => {
   try {
     const validatedData = userSchema.parse(userData);
 
-    const user = await prisma.user.upsert({
+    let user = await prisma.user.findUnique({
       where: { socialId: validatedData.socialId },
-      update: { name: validatedData.name, avatar: validatedData.avatar },
-      create: validatedData,
     });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: validatedData,
+      });
+    }
 
     return user;
   } catch (error) {
     console.error("Error during user login:", error);
-    throw new Error(`${error instanceof ZodError ? error.message : "Login Unsuccessful"}`);
+    throw new Error(
+      error instanceof ZodError ? error.errors.map(err => err.message).join(", ") : "Login Unsuccessful"
+    );
   }
 };
 

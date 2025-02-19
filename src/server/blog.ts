@@ -44,8 +44,6 @@ export async function createBlog(
     if (decodedToken.user_id !== uid) {
       throw new Error("Unauthorized user");
     }
-
-    await redis.del("trendingBlogs");
     
     await prisma.blog.create({
       data: validatedData,
@@ -295,9 +293,6 @@ function calculateTrendingScore(
 }
 
 export async function fetchTrendingBlogs(page: number = 1, limit: number = 5) {
-  const cachedBlogs = await redis.get("trendingBlogs");
-  if (cachedBlogs) {
-    return JSON.parse(cachedBlogs)}
   const blogs = await prisma.blog.findMany({
     include: {
       author: true,
@@ -323,9 +318,7 @@ export async function fetchTrendingBlogs(page: number = 1, limit: number = 5) {
 
   scoredBlogs.sort((a, b) => b.score - a.score);
 
-  const trendingBlogs =  scoredBlogs.slice(0, limit);
-  await redis.set("trendingBlogs", JSON.stringify(trendingBlogs));
-  return trendingBlogs;
+  return scoredBlogs.slice(0, limit);
 }
 
 export type BlogType = Awaited<ReturnType<typeof fetchTrendingBlogs>>;
@@ -501,3 +494,72 @@ export async function generateRecommendedContent(blogId: string) {
 export type RecommendedContentType = Awaited<
   ReturnType<typeof generateRecommendedContent>
 >;
+
+
+
+  export async function getSearchedBlogs(query: string, page: number = 1) {
+    const pageSize = 5
+    const isFirstPage = page === 1
+    const cacheKey = `search:${query}:page:${page}`
+  
+    const cachedResults = await redis.get(cacheKey)
+    if (cachedResults) {
+      return JSON.parse(cachedResults)
+    }
+  
+    const [blogs, authors] = await Promise.all([
+      prisma.blog.findMany({
+        where: {
+          OR: [
+            { title: { contains: query, mode: "insensitive" } },
+            { subtitle: { contains: query, mode: "insensitive" } },
+            { author: { name: { contains: query, mode: "insensitive" } } },
+            { tags: { has: query } },
+          ],
+        },
+        select: {
+          id: true,
+          title: true,
+          subtitle: true,
+          thumbnail : true,
+          author: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+            },
+          },
+        },
+        take: isFirstPage ? 10 : pageSize,
+        skip: isFirstPage ? 0 : (page - 1) * pageSize + 5,
+      }),
+      prisma.user.findMany({
+        where: {
+          name: { contains: query, mode: "insensitive" },
+        },
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          bio: true,
+          _count: {
+            select: {
+              blogs: true,
+            },
+          },
+        },
+        take: 5,
+      }),
+    ])
+  
+    const results = {
+      blogs,
+      authors,
+      hasMore: blogs.length === (isFirstPage ? 10 : pageSize),
+    }
+  
+    await redis.set(cacheKey, JSON.stringify(results), "EX", 3600)
+  
+    return results
+  }
+

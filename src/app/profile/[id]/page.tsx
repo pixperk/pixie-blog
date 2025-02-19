@@ -10,10 +10,11 @@ import { Separator } from "@/components/ui/separator";
 import { useUser } from "@/context/userContext";
 import { getUserProfileById, ProfileType } from "@/server/user";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowRight, ArrowUpCircle, Clock, Github, Mail, MessageSquare, Twitter, Users } from "lucide-react";
+import { ArrowRight, ArrowUpCircle, Clock, Code, Github, Mail, MessageSquare, Twitter, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
 
 const SocialLink = ({ icon: Icon, href, label }: { icon: any, href: string, label: string }) => (
   <a
@@ -26,6 +27,47 @@ const SocialLink = ({ icon: Icon, href, label }: { icon: any, href: string, labe
     <Icon size={18} />
   </a>
 );
+
+const EmbedCodeDialog = ({ userId }: { userId: string }) => {
+  const embedCode = `<iframe src="${process.env.NEXT_PUBLIC_APP_URL}/profile/${userId}/embed" width="100%" height="400" frameborder="0"></iframe>`;
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-neon-green-500/20 hover:bg-neon-green-500/10 text-neon-green-400"
+        >
+          <Code className="w-4 h-4 mr-2" />
+          Embed Profile
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="bg-gray-900 border-neon-green-500/20">
+        <DialogHeader>
+          <DialogTitle className="text-neon-green-400">Embed Your Profile</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <p className="text-gray-400">Copy this code to embed your profile on your website:</p>
+          <div className="bg-gray-800 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
+            <pre className="whitespace-pre-wrap break-all">{embedCode}</pre>
+          </div>
+          <Button
+            size="sm"
+            className="bg-neon-green-500/20 hover:bg-neon-green-500/30 text-neon-green-400 w-full"
+            onClick={() => {
+              navigator.clipboard.writeText(embedCode);
+              toast.success("Embed code copied to clipboard!");
+            }}
+          >
+            Copy Embed Code
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 
 const FollowList = ({ users, title }: { users: any[], title: string }) => {
   const router = useRouter();
@@ -53,7 +95,7 @@ const FollowList = ({ users, title }: { users: any[], title: string }) => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => router.push(`/profile${user.id}`)}
+                onClick={() => router.push(`/profile/${user.id}`)}
                 className="opacity-0 group-hover:opacity-100 transition-opacity border-neon-green-500/20 hover:bg-neon-green-500/10 text-neon-green-400"
               >
                 View Profile
@@ -115,38 +157,50 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
               />
             </div>
             <div className="flex-1">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4 mb-4">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-neon-green-400 bg-clip-text text-transparent">
                   {name}
                 </h1>
-                <div className="flex items-center gap-4">
-                 { author.github && <SocialLink
+                <div className="flex items-center gap-2">
+                  {user && userId === user.id ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/profile/${userId}/edit`)}
+                        className="border-neon-green-500/20 hover:bg-neon-green-500/10 text-neon-green-400"
+                      >
+                        Edit Profile
+                      </Button>
+                      <EmbedCodeDialog userId={userId} />
+                    </>
+                  ) : (
+                    <FollowButton author={author} />
+                  )}
+                </div>
+              </div>
+              <p className="text-gray-400 mb-4 max-w-xl">{bio}</p>
+              <div className="flex items-center gap-4">
+                {author.github && (
+                  <SocialLink
                     icon={Github}
                     href={author.github}
                     label="GitHub Profile"
-                  />}
-                 { author.twitter && <SocialLink
+                  />
+                )}
+                {author.twitter && (
+                  <SocialLink
                     icon={Twitter}
                     href={author.twitter}
                     label="Twitter Profile"
-                  />}
-                  
-                  <SocialLink
-                    icon={Mail}
-                    href="mailto:user@example.com"
-                    label="Email"
                   />
-                  {/* Edit Button */}
-                { user && userId===user.id ?(  <Button
-                    variant="outline"
-                    onClick={() => router.push(`/profile/${userId}/edit`)}
-                    className="border-neon-green-500/20 hover:bg-neon-green-500/10 text-neon-green-400"
-                  >
-                    Edit Profile
-                  </Button>) : <FollowButton author={author}/>}
-                </div>
+                )}
+                <SocialLink
+                  icon={Mail}
+                  href={`mailto:${author.email}`}
+                  label="Email"
+                />
               </div>
-              <p className="text-gray-400 mt-2 max-w-xl">{bio}</p>
             </div>
           </div>
         </div>

@@ -5,11 +5,10 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { getSearchedBlogs } from "@/server/blog"
-import { DialogProps } from "@radix-ui/react-dialog"
+import type { DialogProps } from "@radix-ui/react-dialog"
 import { ChevronRight, FileText, Loader2, Search, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
-
 
 interface Author {
   id: string
@@ -23,7 +22,7 @@ interface Blog {
   id: string
   title: string
   subtitle: string
-  thumbnail : string
+  thumbnail: string
   author: {
     id: string
     name: string
@@ -51,7 +50,7 @@ export function SearchCommand({ ...props }: DialogProps) {
   const [page, setPage] = React.useState(1)
   const searchInputRef = React.useRef<HTMLInputElement>(null)
 
-  const performSearch = React.useCallback(async (searchQuery: string, pageNum: number = 1) => {
+  const performSearch = React.useCallback(async (searchQuery: string, pageNum = 1) => {
     if (!searchQuery.trim()) {
       setResults({ blogs: [], authors: [], hasMore: false })
       return
@@ -62,15 +61,12 @@ export function SearchCommand({ ...props }: DialogProps) {
 
     try {
       const searchResults = await getSearchedBlogs(searchQuery, pageNum)
-      if (pageNum === 1) {
-        setResults(searchResults)
-      } else {
-        setResults(prev => ({
-          blogs: [...prev.blogs, ...searchResults.blogs],
-          authors: prev.authors,
-          hasMore: searchResults.hasMore
-        }))
-      }
+      setResults((prev) => ({
+        blogs: pageNum === 1 ? searchResults.blogs : [...prev.blogs, ...searchResults.blogs],
+        authors: pageNum === 1 ? searchResults.authors : prev.authors,
+        hasMore: searchResults.hasMore,
+      }))
+      setPage(pageNum)
     } catch (error) {
       console.error("Search error:", error)
       setError("An error occurred while searching. Please try again.")
@@ -79,29 +75,32 @@ export function SearchCommand({ ...props }: DialogProps) {
     }
   }, [])
 
-  const debouncedSearch = React.useMemo(
-    () => debounce(performSearch, 300),
-    [performSearch]
-  )
+  const debouncedSearch = React.useMemo(() => debounce(performSearch, 300), [performSearch])
 
   React.useEffect(() => {
     if (open) {
       setPage(1)
-      debouncedSearch(query)
+      performSearch(query, 1)
       searchInputRef.current?.focus()
     }
-  }, [query, open, debouncedSearch])
+  }, [query, open, performSearch])
 
   const highlightMatch = (text: string) => {
     if (!query.trim()) return text
-    const regex = new RegExp(`(${query})`, 'gi')
-    return text.split(regex).map((part, i) => 
-      regex.test(part) ? <span key={i} className="search-highlight">{part}</span> : part
+    const regex = new RegExp(`(${query})`, "gi")
+    return text.split(regex).map((part, i) =>
+      regex.test(part) ? (
+        <span key={i} className="search-highlight">
+          {part}
+        </span>
+      ) : (
+        part
+      ),
     )
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       setOpen(false)
     }
   }
@@ -123,7 +122,7 @@ export function SearchCommand({ ...props }: DialogProps) {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent 
+        <DialogContent
           className="sm:max-w-[600px] max-h-[85vh] bg-gray-900 border-neon-green-800/50 p-0 gap-0 overflow-hidden"
           onKeyDown={handleKeyDown}
         >
@@ -140,7 +139,7 @@ export function SearchCommand({ ...props }: DialogProps) {
             </div>
           </div>
 
-          <ScrollArea className="flex-1 p-4 max-h-[60vh] scrollbar-custom">
+          <ScrollArea className="scroll-area flex-1 p-4 max-h-[60vh] scrollbar-custom">
             {error ? (
               <div className="text-center py-4 text-red-400">{error}</div>
             ) : loading && page === 1 ? (
@@ -148,13 +147,9 @@ export function SearchCommand({ ...props }: DialogProps) {
                 <Loader2 className="h-8 w-8 animate-spin text-neon-green-500" />
               </div>
             ) : !query.trim() ? (
-              <div className="text-center py-8 text-neon-green-500/70">
-                Start typing to search...
-              </div>
+              <div className="text-center py-8 text-neon-green-500/70">Start typing to search...</div>
             ) : results?.authors?.length === 0 && results?.blogs?.length === 0 ? (
-              <div className="text-center py-8 text-neon-green-500/70">
-                No results found for "{query}"
-              </div>
+              <div className="text-center py-8 text-neon-green-500/70">No results found for "{query}"</div>
             ) : (
               <div className="space-y-6">
                 {results?.authors?.length > 0 && (
@@ -176,7 +171,7 @@ export function SearchCommand({ ...props }: DialogProps) {
                           <div className="h-12 w-12 mr-4 flex-shrink-0">
                             {author.avatar ? (
                               <img
-                                src={author.avatar}
+                                src={author.avatar || "/placeholder.svg"}
                                 alt={author.name}
                                 className="rounded-full object-cover w-full h-full ring-2 ring-neon-green-500/20 group-hover:ring-neon-green-500/50 transition-all"
                               />
@@ -187,17 +182,11 @@ export function SearchCommand({ ...props }: DialogProps) {
                             )}
                           </div>
                           <div className="flex-grow min-w-0">
-                            <p className="font-medium text-neon-green-50">
-                              {highlightMatch(author.name)}
-                            </p>
+                            <p className="font-medium text-neon-green-50">{highlightMatch(author.name)}</p>
                             <p className="text-sm text-neon-green-500/70">
-                              {author._count.blogs} {author._count.blogs === 1 ? 'blog' : 'blogs'}
+                              {author._count.blogs} {author._count.blogs === 1 ? "blog" : "blogs"}
                             </p>
-                            {author.bio && (
-                              <p className="text-sm text-neon-green-400/60 truncate mt-1">
-                                {author.bio}
-                              </p>
-                            )}
+                            {author.bio && <p className="text-sm text-neon-green-400/60 truncate mt-1">{author.bio}</p>}
                           </div>
                           <ChevronRight className="ml-2 h-5 w-5 text-neon-green-500/50 group-hover:text-neon-green-500 transition-colors" />
                         </div>
@@ -223,20 +212,15 @@ export function SearchCommand({ ...props }: DialogProps) {
                           className="flex items-center p-3 hover:bg-neon-green-900/50 rounded-lg transition-all duration-200 cursor-pointer group"
                         >
                           <div className="h-12 w-12 mr-4 flex-shrink-0 rounded-lg bg-neon-green-500/20 flex items-center justify-center group-hover:bg-neon-green-500/30 transition-all">
-                          <img
-                                src={blog.thumbnail}
-                                alt={blog.title}
-                                className="rounded-full object-cover w-full h-full ring-2 ring-neon-green-500/20 group-hover:ring-neon-green-500/50 transition-all"
-                              />
+                            <img
+                              src={blog.thumbnail || "/placeholder.svg"}
+                              alt={blog.title}
+                              className="rounded-full object-cover w-full h-full ring-2 ring-neon-green-500/20 group-hover:ring-neon-green-500/50 transition-all"
+                            />
                           </div>
                           <div className="flex-grow min-w-0">
-                            <p className="font-medium text-neon-green-50">
-                              {highlightMatch(blog.title)}
-                            </p>
-                            <p className="text-sm text-neon-green-500/70">
-                              by {highlightMatch(blog.author.name)}
-                            </p>
-                            
+                            <p className="font-medium text-neon-green-50">{highlightMatch(blog.title)}</p>
+                            <p className="text-sm text-neon-green-500/70">by {highlightMatch(blog.author.name)}</p>
                           </div>
                           <ChevronRight className="ml-2 h-5 w-5 text-neon-green-500/50 group-hover:text-neon-green-500 transition-colors" />
                         </div>
@@ -246,39 +230,33 @@ export function SearchCommand({ ...props }: DialogProps) {
                 )}
               </div>
             )}
+            {results.hasMore && !loading && (
+              <div className="flex justify-center mt-4">
+                <Button
+                  onClick={() => {
+                    const nextPage = page + 1
+                    performSearch(query, nextPage)
+                  }}
+                  variant="outline"
+                  className="text-neon-green-500 border-neon-green-500 hover:bg-neon-green-500/10"
+                >
+                  Load More
+                </Button>
+              </div>
+            )}
+            {loading && page > 1 && (
+              <div className="flex justify-center mt-4">
+                <Loader2 className="h-6 w-6 animate-spin text-neon-green-500" />
+              </div>
+            )}
           </ScrollArea>
-
-          {results.hasMore && (
-            <div className="p-4 border-t border-neon-green-800/50">
-              <Button
-                onClick={() => {
-                  setPage(prev => prev + 1)
-                  performSearch(query, page + 1)
-                }}
-                className="w-full bg-neon-green-500/20 text-neon-green-500 hover:bg-neon-green-500/30 transition-colors"
-                disabled={loading}
-              >
-                {loading ? (
-                  <div className="flex items-center justify-center">
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Loading more...
-                  </div>
-                ) : (
-                  "Load more results"
-                )}
-              </Button>
-            </div>
-          )}
         </DialogContent>
       </Dialog>
     </>
   )
 }
 
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout
 
   return (...args: Parameters<T>) => {
@@ -286,3 +264,4 @@ function debounce<T extends (...args: any[]) => any>(
     timeout = setTimeout(() => func(...args), wait)
   }
 }
+

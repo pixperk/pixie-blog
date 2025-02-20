@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -9,15 +11,32 @@ import Image from "next/image"
 import { useUser } from "@/context/userContext"
 import { Loader2, X } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
-import type { CommentType as Comment } from "@/server/blog"
+import type { CommentType } from "@/server/blog"
 import { motion, AnimatePresence } from "framer-motion"
 
+type User = {
+  id: string
+  name: string | null
+  avatar: string | null
+  socialId: string
+  bio: string | null
+  email: string
+  github: string
+  twitter: string
+  linkedin: string
+}
 
-export function CommentSection({
-  blogId,
-  open,
-  onOpenChange,
-}: { blogId: string; open: boolean; onOpenChange: (open: boolean) => void }) {
+type Comment = CommentType & {
+  user: User
+}
+
+type CommentSectionProps = {
+  blogId: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export function CommentSection({ blogId, open, onOpenChange }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState("")
   const [isLoading, setIsLoading] = useState(true)
@@ -56,20 +75,20 @@ export function CommentSection({
           socialId: new Date().toISOString(),
           bio: null,
           email: new Date().toISOString(),
-          github : "",
-          twitter : "",
-          linkedin : "",
+          github: "",
+          twitter: "",
+          linkedin: "",
         },
       }
       setComments([optimisticComment, ...comments])
       setNewComment("")
-      const serverComment = (await addComment(newComment, user.id, blogId, user?.uid!, user?.idToken!)) as Comment
+      const serverComment = (await addComment(newComment, user.id, blogId, user.uid, user.idToken)) as Comment
       setComments((prevComments) => [{ ...serverComment, user: optimisticComment.user }, ...prevComments.slice(1)])
     }
   }
 
   return (
-    <Sheet  open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
         className="bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100 antialiased p-6 rounded-t-xl border-t border-neon-green-500/50 h-[80vh] overflow-hidden custom-scrollbar"
@@ -108,15 +127,13 @@ export function CommentSection({
   )
 }
 
-function CommentList({
-  comments,
-  setComments,
-  blogId,
-}: {
+type CommentListProps = {
   comments: Comment[]
   setComments: React.Dispatch<React.SetStateAction<Comment[]>>
   blogId: string
-}) {
+}
+
+function CommentList({ comments, setComments, blogId }: CommentListProps) {
   return (
     <div className="space-y-4">
       <AnimatePresence>
@@ -136,17 +153,14 @@ function CommentList({
   )
 }
 
-function CommentItem({
-  comment,
-  setComments,
-  blogId,
-  depth,
-}: {
+type CommentItemProps = {
   comment: Comment
   setComments: React.Dispatch<React.SetStateAction<Comment[]>>
   blogId: string
   depth: number
-}) {
+}
+
+function CommentItem({ comment, setComments, blogId, depth }: CommentItemProps) {
   const [reply, setReply] = useState("")
   const [showReplyBox, setShowReplyBox] = useState(false)
   const [showReplies, setShowReplies] = useState(false)
@@ -166,7 +180,7 @@ function CommentItem({
           replies: 0,
         },
         blogId: Date.now().toString(),
-        parentId: comment.id, // Corrected parentId
+        parentId: comment.id,
         userId: user.id,
         user: {
           id: user.id,
@@ -175,16 +189,16 @@ function CommentItem({
           socialId: new Date().toISOString(),
           bio: null,
           email: new Date().toISOString(),
-          github : "",
-          twitter : "",
-          linkedin : "",
+          github: "",
+          twitter: "",
+          linkedin: "",
         },
       }
       setReplies([optimisticReply, ...replies])
       setReply("")
       setShowReplyBox(false)
       setShowReplies(true)
-      const serverReply = (await addReply(reply, user.id, blogId, comment.id, user.uid!, user.idToken!)) as Comment
+      const serverReply = (await addReply(reply, user.id, blogId, comment.id, user.uid, user.idToken)) as Comment
       setReplies((prevReplies) => [{ ...serverReply, user: optimisticReply.user }, ...prevReplies.slice(1)])
     }
   }

@@ -40,8 +40,7 @@ export function SiteHeader() {
     router.push("/")
   }
 
-  // Two extra categories: "CyberPulse" as  trending category (no query param)
-  // and "Following" which will set ?category=Following when clicked.
+
   const extraCategories = [
     { name: "Trending", query: "" },
     { name: "Following", query: "Following" },

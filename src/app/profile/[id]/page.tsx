@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useUser } from "@/context/userContext";
-import { getUserProfileById, ProfileType } from "@/server/user";
+import { getUserProfileById } from "@/server/user";
 import { formatDistanceToNow } from "date-fns";
 import { ArrowRight, ArrowUpCircle, Clock, Code, Github, Mail, MessageSquare, Twitter, Users } from "lucide-react";
 import Image from "next/image";
@@ -16,7 +16,61 @@ import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
-const SocialLink = ({ icon: Icon, href, label }: { icon: any, href: string, label: string }) => (
+interface ProfileType {
+  id: string;
+  name: string;
+  socialId: string;
+  email: string;
+  bio: string | null;
+  avatar: string;
+  github: string | null;
+  twitter: string | null;
+  linkedin: string | null;
+  blogs: BlogType[];
+  followers: FollowerType[];
+  following: FollowerType[];
+}
+
+interface BlogType {
+  id: string;
+  _count: {
+    comments: number;
+    upvotes: number;
+  };
+  title: string;
+  subtitle: string | null;
+  thumbnail: string;
+  content: string;
+  readingTime: string;
+  createdAt: Date;
+  tags: {
+    tag: string;
+  }[];
+}
+
+interface FollowerType {
+  id: string;
+  name: string;
+  bio: string | null;
+  avatar: string;
+}
+
+interface SocialLinkProps {
+  icon: React.ComponentType<{ size: number }>;
+  href: string;
+  label: string;
+}
+
+interface EmbedCodeDialogProps {
+  userId: string;
+}
+
+interface FollowListProps {
+  users: FollowerType[];
+  title: string;
+}
+
+const SocialLink = ({ icon: Icon, href, label }: SocialLinkProps) => (
   <a
     href={href}
     target="_blank"
@@ -28,7 +82,7 @@ const SocialLink = ({ icon: Icon, href, label }: { icon: any, href: string, labe
   </a>
 );
 
-const EmbedCodeDialog = ({ userId }: { userId: string }) => {
+const EmbedCodeDialog = ({ userId }: EmbedCodeDialogProps) => {
   const embedCode = `<iframe src="${process.env.NEXT_PUBLIC_APP_URL}/profile/${userId}/embed" width="100%" height="400" frameborder="0"></iframe>`;
 
   return (
@@ -68,8 +122,7 @@ const EmbedCodeDialog = ({ userId }: { userId: string }) => {
   );
 };
 
-
-const FollowList = ({ users, title }: { users: any[], title: string }) => {
+const FollowList = ({ users, title }: FollowListProps) => {
   const router = useRouter();
   
   return (
@@ -257,7 +310,7 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-neon-green-400">Latest Posts</h2>
             <Button
-              onClick={() => router.push('/blogs')}
+              onClick={() => router.push(`/profile/${userId}/blogs`)}
               variant="outline"
               className="border-neon-green-500/20 hover:bg-neon-green-500/10 text-neon-green-400"
             >

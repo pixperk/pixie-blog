@@ -47,26 +47,25 @@ export async function createBlog(
     await prisma.$transaction(async (tx) => {
       const blog = await tx.blog.create({
         data: {
-          title : validatedData.title,
-          content : validatedData.content,
-          readingTime : validatedData.readingTime,
-          authorId : validatedData.authorId,
-          thumbnail : validatedData.thumbnail,
-          subtitle : validatedData.subtitle
+          title: validatedData.title,
+          content: validatedData.content,
+          readingTime: validatedData.readingTime,
+          authorId: validatedData.authorId,
+          thumbnail: validatedData.thumbnail,
+          subtitle: validatedData.subtitle,
         },
       });
 
       // Insert tags into BlogTag table
       if (tags.length > 0) {
         await tx.blogTag.createMany({
-          data: tags.map(tag => ({
+          data: tags.map((tag) => ({
             blogId: blog.id,
             tag,
           })),
         });
       }
     });
-
   } catch (error) {
     console.error("Error during blog creation:", error);
     throw new Error(
@@ -92,7 +91,7 @@ export async function getBlogById(id: string) {
       },
     },
   });
-  await redis.set(`blog:${id}`, JSON.stringify(blog)); 
+  await redis.set(`blog:${id}`, JSON.stringify(blog));
   return blog;
 }
 
@@ -111,26 +110,26 @@ export async function addComment(
   uid: string,
   idToken: string
 ) {
+  try {
+    const validatedData = addCommentSchema.parse({
+      content,
+      userId,
+      blogId,
+    });
 
-  try{
-  const validatedData = addCommentSchema.parse({
-    content,
-    userId,
-    blogId,
-  });
+    const decodedToken = await verifyIdTokenWithoutAdmin(idToken);
+    if (decodedToken.user_id !== uid) {
+      throw new Error("Unauthorized user");
+    }
 
-  const decodedToken = await verifyIdTokenWithoutAdmin(idToken);
-  if (decodedToken.user_id !== uid) {
-    throw new Error("Unauthorized user");
-  }
+    //invalidate the cache
+    await redis.del(`blog:${blogId}`);
+    await redis.del(`comments:${blogId}`);
 
-  //invalidate the cache
-  await redis.del(`blog:${blogId}`);
-  await redis.del(`comments:${blogId}`);
-
-  return await prisma.comment.create({
-    data: validatedData,
-  });}catch(error){
+    return await prisma.comment.create({
+      data: validatedData,
+    });
+  } catch (error) {
     console.error("Error during comment creation:", error);
     throw new Error(
       error instanceof ZodError ? error.message : "Unable to create comment"
@@ -143,7 +142,7 @@ export async function getComments(blogId: string) {
   if (cachedComments) {
     return JSON.parse(cachedComments);
   }
-  const comments =  await prisma.comment.findMany({
+  const comments = await prisma.comment.findMany({
     where: { blogId, parentId: null },
     include: {
       _count: {
@@ -152,12 +151,10 @@ export async function getComments(blogId: string) {
       user: true,
     },
     orderBy: {
-      replies : {
-        _count : "desc"
-      }
-    }
-    
-    
+      replies: {
+        _count: "desc",
+      },
+    },
   });
   await redis.set(`comments:${blogId}`, JSON.stringify(comments));
   return comments;
@@ -168,7 +165,7 @@ export async function getReplies(blogId: string, parentId: string) {
   if (cachedReplies) {
     return JSON.parse(cachedReplies);
   }
-  const replies =  await prisma.comment.findMany({
+  const replies = await prisma.comment.findMany({
     where: { blogId, parentId },
     include: {
       _count: {
@@ -184,7 +181,6 @@ export async function getReplies(blogId: string, parentId: string) {
 
 type commentArrayType = Awaited<ReturnType<typeof getComments>>;
 export type CommentType = commentArrayType[number];
-
 
 //validate reply schema
 const addReplySchema = z.object({
@@ -202,7 +198,6 @@ export async function addReply(
   uid: string,
   idToken: string
 ) {
-
   const validatedData = addReplySchema.parse({
     content,
     userId,
@@ -224,8 +219,12 @@ export async function addReply(
   });
 }
 
-
-export async function upvote(blogId: string, userId: string, uid: string, idToken: string) {
+export async function upvote(
+  blogId: string,
+  userId: string,
+  uid: string,
+  idToken: string
+) {
   try {
     const upvote = await prisma.upvote.findUnique({
       where: { userId_blogId: { userId, blogId } },
@@ -260,7 +259,12 @@ export async function hasUserUpvoted(blogId: string, userId: string) {
 
   return !!upvote;
 }
-export async function addBookmark(blogId: string, userId: string,uid: string, idToken: string) {
+export async function addBookmark(
+  blogId: string,
+  userId: string,
+  uid: string,
+  idToken: string
+) {
   try {
     const decodedToken = await verifyIdTokenWithoutAdmin(idToken);
     if (decodedToken.user_id !== uid) {
@@ -290,7 +294,6 @@ export async function addBookmark(blogId: string, userId: string,uid: string, id
 }
 
 export async function hasUserBookmarked(blogId: string, userId: string) {
-  
   const bookmark = await prisma.bookmark.findUnique({
     where: { userId_blogId: { userId, blogId } },
   });
@@ -315,7 +318,7 @@ export async function fetchTrendingBlogs(page: number = 1, limit: number = 5) {
   const blogs = await prisma.blog.findMany({
     include: {
       author: true,
-      tags : true,
+      tags: true,
 
       _count: {
         select: { comments: true, upvotes: true },
@@ -355,7 +358,7 @@ export async function fetchBookmarked(
       blog: {
         include: {
           author: true,
-          tags : true,
+          tags: true,
           _count: {
             select: { comments: true, upvotes: true },
           },
@@ -453,7 +456,7 @@ export async function generateRecommendedContent(blogId: string) {
       },
       include: {
         author: true,
-        tags : true,
+        tags: true,
         _count: {
           select: {
             comments: true,
@@ -477,7 +480,7 @@ export async function generateRecommendedContent(blogId: string) {
       },
       include: {
         author: true,
-        tags : true,
+        tags: true,
         _count: {
           select: {
             comments: true,
@@ -515,8 +518,6 @@ export async function generateRecommendedContent(blogId: string) {
 export type RecommendedContentType = Awaited<
   ReturnType<typeof generateRecommendedContent>
 >;
-
-
 
 export async function getSearchedBlogs(query: string, page: number = 1) {
   const pageSize = 5;
@@ -587,12 +588,8 @@ export async function getSearchedBlogs(query: string, page: number = 1) {
   return results;
 }
 
-
-
-
-export async function getTrendingTags() : Promise<string[]>{
-  
-const TRENDING_TAGS_CACHE_KEY = 'trending_tags';
+export async function getTrendingTags(): Promise<string[]> {
+  const TRENDING_TAGS_CACHE_KEY = "trending_tags";
   // Check cache first
   const cachedTags = await redis.get(TRENDING_TAGS_CACHE_KEY);
   if (cachedTags) return JSON.parse(cachedTags);
@@ -613,7 +610,8 @@ const TRENDING_TAGS_CACHE_KEY = 'trending_tags';
 
   // Calculate scores (upvotes + comments)
   const tagScores = trendingTags.reduce((acc, tag) => {
-    const score = (tag.blog._count.upvotes ?? 0) + (tag.blog._count.comments ?? 0);
+    const score =
+      (tag.blog._count.upvotes ?? 0) + (tag.blog._count.comments ?? 0);
     acc[tag.tag] = (acc[tag.tag] || 0) + score;
     return acc;
   }, {} as Record<string, number>);
@@ -625,7 +623,7 @@ const TRENDING_TAGS_CACHE_KEY = 'trending_tags';
     .map(([tag]) => tag);
 
   // Cache result in Redis for 10 minutes
-  await redis.set(TRENDING_TAGS_CACHE_KEY, JSON.stringify(topTags), 'EX', 600);
+  await redis.set(TRENDING_TAGS_CACHE_KEY, JSON.stringify(topTags), "EX", 600);
 
   return topTags;
 }
@@ -674,13 +672,11 @@ export async function fetchBlogsByTag(
   return scoredBlogs.slice(0, limit);
 }
 
-
 export async function fetchFollowedBlogs(
   loggedInUserId: string,
   page: number = 1,
   limit: number = 5
 ) {
- 
   const user = await prisma.user.findUnique({
     where: { id: loggedInUserId },
     include: { following: true },
@@ -726,4 +722,31 @@ export async function fetchFollowedBlogs(
   scoredBlogs.sort((a, b) => b.score - a.score);
 
   return scoredBlogs.slice(0, limit);
+}
+
+export async function getAuthorBlogs(
+  authorId: string,
+  page: number = 1,
+  limit: number = 5
+) : Promise<BlogType> {
+  const blogs = await prisma.blog.findMany({
+    where: {
+      authorId,
+    },
+    include: {
+      author: true,
+      tags: true,
+
+      _count: {
+        select: { comments: true, upvotes: true },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    skip: (page - 1) * limit,
+    take: limit,
+  }) as BlogType;
+
+  return blogs;
 }

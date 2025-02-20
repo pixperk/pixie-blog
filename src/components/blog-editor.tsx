@@ -6,7 +6,7 @@ import { calculateReadingTime } from "@/lib/utils"
 import { createBlog } from "@/server/blog"
 import "@uiw/react-markdown-preview/markdown.css"
 import "@uiw/react-md-editor/markdown-editor.css"
-import { SaveIcon, SendIcon } from "lucide-react"
+import { SaveIcon, SendIcon, ImageIcon } from "lucide-react"
 import { useTheme } from "next-themes"
 import dynamic from "next/dynamic"
 import { useEffect, useState, useCallback } from "react"
@@ -37,7 +37,7 @@ import type { ClientUploadedFileData } from "uploadthing/types"
 import type { OurFileRouter } from "@/app/api/uploadthing/core"
 import { fetchUserImages, saveImageForUser } from "@/server/image"
 import toast from "react-hot-toast"
-import { SelectTags } from "./select-tags" // Import the new SelectTags component
+import { SelectTags } from "./select-tags"
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false })
 
@@ -142,7 +142,17 @@ export function BlogEditor() {
 
     setIsSubmitting(true)
     try {
-      await createBlog(post.title, post.content, post.readingTime, user?.id!, thumbnailUrl,user?.idToken!, user?.uid!,selectedTags, post.subtitle)
+      await createBlog(
+        post.title,
+        post.content,
+        post.readingTime,
+        user?.id!,
+        thumbnailUrl,
+        user?.idToken!,
+        user?.uid!,
+        selectedTags,
+        post.subtitle,
+      )
       toast.success("Blog post created successfully!")
       router.push("/")
     } catch (error) {
@@ -166,9 +176,8 @@ export function BlogEditor() {
     }))
   }
 
-
   return (
-    <div className="p-6 bg-gray-900 rounded-lg shadow-xl space-y-6" data-color-mode={theme}>
+    <div className="p-8 bg-gray-900 rounded-lg shadow-xl space-y-8" data-color-mode={theme}>
       {loading ? (
         <div className="animate-pulse space-y-4">
           <div className="h-6 w-3/4 bg-gray-700 rounded"></div>
@@ -192,77 +201,79 @@ export function BlogEditor() {
         setThumbnailUrl={setThumbnailUrl}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="space-y-4">
+      <SelectTags
+        tags={tags}
+        setTags={setTags}
+        selectedTags={selectedTags}
+        setSelectedTags={setSelectedTags}
+        setPost={setPost}
+      />
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex-1 space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-neon-green-400">Editor</h2>
+            <h2 className="text-2xl font-semibold text-neon-green-400">Editor</h2>
             <ImageUploaderModal
               handleUpload={handleImageUpload}
               handleInsert={handleImageInsert}
               images={userImages}
               setImages={setUserImages}
             />
+             
           </div>
 
-          {/* Add the SelectTags component here */}
-          <SelectTags
-            tags={tags}
-            setTags={setTags}
-            selectedTags={selectedTags}
-            setSelectedTags={setSelectedTags}
-            setPost={setPost}
-          />
-
           <MDEditor
-          maxHeight={480}
             value={post.content}
-            color="neon-green-400"
             onChange={(value) => {
               setPost((prev) => ({ ...prev, content: value || "" }))
               updateReadingTime(value || "")
             }}
             preview="edit"
-            height={400}
+            height={600}
             className="border border-neon-green-400 rounded-md overflow-hidden"
+            textareaProps={{
+              placeholder: "Start writing your blog post here...",
+            }}
           />
         </div>
 
-        <div className="space-y-4 bg-gray-800 p-6 rounded-md border border-neon-green-400 max-h-[496px] overflow-auto">
-          <h2 className="text-xl font-semibold text-neon-green-400">Preview</h2>
-          <ReactMarkdown
-            
-            remarkPlugins={[remarkGfm]}
-            className="text-gray-300 leading-relaxed space-y-6 mt-4"
-            components={{
-              img: CustomImage,
-              h1: (props) => <CustomHeading level={1} {...props} />,
-              h2: (props) => <CustomHeading level={2} {...props} />,
-              h3: (props) => <CustomHeading level={3} {...props} />,
-              p: CustomParagraph,
-              blockquote: CustomBlockquote,
-              code: CustomCode,
-              ul: (props) => <CustomList {...props} />,
-              ol: (props) => <CustomList ordered {...props} />,
-              li: CustomListItem,
-              a: CustomLink,
-              hr: CustomHR,
-              table: CustomTable,
-              thead: CustomTableHead,
-              tbody: CustomTableBody,
-              tr: CustomTableRow,
-              th: ({ children }) => <CustomTableCell isHeader>{children}</CustomTableCell>,
-              td: CustomTableCell,
-            }}
-          >
-            {post.content}
-          </ReactMarkdown>
+        <div className="flex-1 space-y-4">
+          <h2 className="text-2xl font-semibold text-neon-green-400">Preview</h2>
+          <div className="bg-gray-800 p-6 rounded-md border border-neon-green-400 h-[600px] overflow-auto">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              className="text-gray-300 leading-relaxed space-y-6"
+              components={{
+                img: CustomImage,
+                h1: (props) => <CustomHeading level={1} {...props} />,
+                h2: (props) => <CustomHeading level={2} {...props} />,
+                h3: (props) => <CustomHeading level={3} {...props} />,
+                p: CustomParagraph,
+                blockquote: CustomBlockquote,
+                code: CustomCode,
+                ul: (props) => <CustomList {...props} />,
+                ol: (props) => <CustomList ordered {...props} />,
+                li: CustomListItem,
+                a: CustomLink,
+                hr: CustomHR,
+                table: CustomTable,
+                thead: CustomTableHead,
+                tbody: CustomTableBody,
+                tr: CustomTableRow,
+                th: ({ children }) => <CustomTableCell isHeader>{children}</CustomTableCell>,
+                td: CustomTableCell,
+              }}
+            >
+              {post.content}
+            </ReactMarkdown>
+          </div>
         </div>
       </div>
 
-      <div className="flex justify-end space-x-4">
+      <div className="flex justify-end space-x-4 mt-8">
         <Button
           variant="outline"
-          className="border-neon-green-400 text-neon-green-400 hover:bg-neon-green-400 hover:text-gray-900"
+          className="border-neon-green-400 text-neon-green-400 hover:bg-neon-green-400 hover:text-gray-900 transition-all duration-300"
           disabled={isSubmitting}
         >
           <SaveIcon className="w-4 h-4 mr-2" /> Save Draft
@@ -273,7 +284,7 @@ export function BlogEditor() {
           className={`flex items-center justify-center rounded-lg px-6 py-2 font-medium transition-all duration-300 ${
             isSubmitting
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-neon-green-400 text-gray-900 hover:bg-neon-green-300 hover:shadow-md"
+              : "bg-neon-green-400 text-gray-900 hover:bg-neon-green-300 hover:shadow-lg"
           }`}
         >
           {isSubmitting ? (

@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare } from "lucide-react";
 import { RecommendedContent } from "./recommended-content";
 import FollowButton from "@/components/follow-button";
+import { useRouter } from "next/navigation";
 
 
 export default function BlogPost({ params }: { params: Promise<{ id: string }> }) {
@@ -37,6 +38,7 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
   const [isCommentSectionOpen, setIsCommentSectionOpen] = useState(false);
 
   const blogId = use(params).id;
+  const router = useRouter();
 
   useEffect(() => {
     const fetchBlog = async () => {
@@ -83,10 +85,16 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
                 alt={blog.title}
                 width={60}
                 height={60}
-                className="rounded-full border-2 border-neon-green-400"
+                className="rounded-full border-2 border-neon-green-400 cursor-pointer"
+                onClick={() => router.push(`/profile/${blog.author.id}`)}
               />
               <div>
-                <h3 className="font-medium text-neon-green-400 text-xl">{blog.author.name}</h3>
+                <h3
+                  className="font-medium text-neon-green-400 text-xl cursor-pointer"
+                  onClick={() => router.push(`/profile/${blog.author.id}`)}
+                >
+                  {blog.author.name}
+                </h3>
                 <p className="text-sm text-gray-400">{blog.author.bio ?? ""}</p>
                 <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
                   <time>
@@ -100,7 +108,6 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
                   <span>{blog.readingTime}</span>
                 </div>
               </div>
-              {/* Add FollowButton component here */}
               <FollowButton author={blog.author} />
             </div>
             <h1 className="text-4xl font-bold text-neon-green-500 sm:text-6xl leading-tight">{blog.title}</h1>

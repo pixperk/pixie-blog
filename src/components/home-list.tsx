@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useUser } from "@/context/userContext"
-import { fetchTrendingBlogs, fetchBlogsByTag, fetchFollowedBlogs } from "@/server/blog"
+import { fetchTrendingBlogs, fetchBlogsByTag, fetchFollowedBlogs, getAuthorBlogs } from "@/server/blog"
 import { formatDistanceToNow } from "date-fns"
 import { ArrowBigUp, MessageSquare } from "lucide-react"
 import Image from "next/image"
@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { Bookmark } from "./bookmark"
 import { useSearchParams } from "next/navigation"
 import { Skeleton } from "./ui/skeleton"
+import toast from "react-hot-toast"
 
 interface BlogType {
   id: string
@@ -101,7 +102,8 @@ export default function HomeList() {
             setLoading(false)
             return
           }
-        } else {
+        } 
+        else {
           data = await fetchBlogsByTag(category, currentPage)
         }
 

@@ -121,7 +121,7 @@ export default function HomeList() {
   }, [loading, hasMore, page, fetchBlogs])
 
   return (
-    <Suspense fallback = <>{BlogSkeleton}</>>
+    <Suspense fallback = {<>{BlogSkeleton}</>}>
     <div className="space-y-8 px-4 sm:px-6 max-w-4xl mx-auto">
       {blogs.length === 0 && !loading && (
         <div className="text-center py-12 space-y-4">

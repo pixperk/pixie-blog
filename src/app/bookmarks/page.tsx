@@ -15,7 +15,6 @@ export default async function BookmarksPage() {
               <BookmarksList/>
             </div>
             <aside className="lg:col-span-4 space-y-8">
-            
               <BlogAside />
             </aside>
           </div>

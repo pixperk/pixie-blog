@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageSquare, ArrowBigUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -100,6 +100,7 @@ export default function BookmarksList() {
   }
 
   return (
+     <Suspense fallback = {<>{BlogSkeleton}</>}>
     <div className="space-y-8 px-4 sm:px-6 max-w-4xl mx-auto">
       {bookmarkedBlogs.map(({ blog }, index) => (
         <article
@@ -185,5 +186,6 @@ export default function BookmarksList() {
       ))}
       {loading && <BlogSkeleton />}
     </div>
+    </Suspense>
   );
 }

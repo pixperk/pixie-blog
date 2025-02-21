@@ -1,7 +1,6 @@
-"use client"; // This ensures it's treated as a client component
+"use client";
+import AuthForm from "./auth-form";
 
-import dynamic from "next/dynamic";
-const AuthForm = dynamic(() => import("./auth-form"), { ssr: false });
 
 export default function LoginPage() {
   return <AuthForm />;

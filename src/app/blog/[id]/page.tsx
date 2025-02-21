@@ -30,6 +30,7 @@ import { MessageSquare } from "lucide-react";
 import { RecommendedContent } from "./recommended-content";
 import FollowButton from "@/components/follow-button";
 import { useRouter } from "next/navigation";
+import Head from "next/head";
 
 
 export default function BlogPost({ params }: { params: Promise<{ id: string }> }) {
@@ -68,6 +69,19 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
   }
 
   return (
+    <>
+     <Head>
+        <title>{blog.title}</title>
+        <meta property="og:title" content={blog.title} />
+        <meta property="og:description" content={blog.subtitle || `${blog.title} by ${blog.author.name}` } />
+        <meta property="og:image" content={blog.thumbnail} />
+        <meta property="og:url" content={`https://${process.env.NEXT_PUBLIC_APP_URL}/blog/${blog.id}`} />
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={blog.title} />
+        <meta name="twitter:description" content={blog.subtitle || `${blog.title} by ${blog.author.name}`} />
+        <meta name="twitter:image" content={blog.thumbnail} />
+      </Head>
     <div className="flex min-h-screen flex-col">
       <TracingBeam />
 
@@ -201,5 +215,6 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
         <RecommendedContent blogId={blogId} author={blog.author} />
       </main>
     </div>
+    </>
   );
 }

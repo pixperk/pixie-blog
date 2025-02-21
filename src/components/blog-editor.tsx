@@ -162,7 +162,7 @@ export function BlogEditor() {
     }
   }
 
-  const handleImageUpload = async (res: ClientUploadedFileData<OurFileRouter>[]) => {
+  const handleImageUpload = async (res: ClientUploadedFileData<{file:string}>[]) => {
     const newImageUrl = res[0].url
     await saveImageForUser(newImageUrl, user?.id!)
     setUserImages((prev) => [...prev, newImageUrl])
@@ -175,6 +175,8 @@ export function BlogEditor() {
       content: `${prev.content}\n![Uploaded Image](${imageUrl})`,
     }))
   }
+
+  if(!user) router.push("/login")
 
   return (
     <div className="p-8 bg-gray-900 rounded-lg shadow-xl space-y-8" data-color-mode={theme}>

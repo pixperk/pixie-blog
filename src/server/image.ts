@@ -45,7 +45,7 @@ export async function deleteImage(url : string, userId  : string){
         
     })
 
-    await axios.delete(`${process.env.PUBLIC_URL}/api/uploadthing`, {
+    await axios.delete(`${process.env.NEXT_PUBLIC_APP_URL}/api/uploadthing`, {
         data: {
           url,
         },

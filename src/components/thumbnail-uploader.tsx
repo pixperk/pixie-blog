@@ -8,7 +8,7 @@ import type { ClientUploadedFileData } from "uploadthing/types";
 import type { OurFileRouter } from "@/app/api/uploadthing/core";
 
 interface ThumbnailUploaderModalProps {
-handleImageUpload : (res: ClientUploadedFileData<OurFileRouter>[]) => void;
+handleImageUpload : (res: ClientUploadedFileData<{file:string}>[]) => void;
   images: string[];
   setImages: Dispatch<SetStateAction<string[]>>;
   thumbnailUrl : string

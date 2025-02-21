@@ -32,7 +32,7 @@ export const ourFileRouter = {
       // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
       return {
         file: file.url,
-      };
+      } ;
     }),
 } satisfies FileRouter;
 

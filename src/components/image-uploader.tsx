@@ -13,7 +13,7 @@ import { useUser } from "@/context/userContext";
 import toast from "react-hot-toast";
 
 interface ImageUploaderModalProps {
-  handleUpload: (res: ClientUploadedFileData<OurFileRouter>[]) => void;
+  handleUpload: (res: ClientUploadedFileData<{file:string}>[]) => void;
   handleInsert: (imageUrl: string) => void;
   images: string[];
   setImages: Dispatch<SetStateAction<string[]>>;
@@ -29,10 +29,12 @@ export const ImageUploaderModal: FC<ImageUploaderModalProps> = ({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useUser();
-  const [deletingImageIndex, setDeletingImageIndex] = useState<number | null>(null);
+  const [deletingImageIndex, setDeletingImageIndex] = useState<number | null>(
+    null
+  );
 
   const handleClientUploadComplete = (
-    res: ClientUploadedFileData<OurFileRouter>[]
+    res: ClientUploadedFileData<{file:string}>[]
   ) => {
     handleUpload(res);
     setActiveTab("your-images");
@@ -46,7 +48,7 @@ export const ImageUploaderModal: FC<ImageUploaderModalProps> = ({
   const handleDelete = async (image: string, index: number) => {
     setDeletingImageIndex(index);
     try {
-      if(!user)throw new Error("Please login")
+      if (!user) throw new Error("Please login");
       await deleteImage(image, user.id!);
       setImages(images.filter((_, i) => i !== index));
       if (selectedImage === image) {
@@ -69,6 +71,8 @@ export const ImageUploaderModal: FC<ImageUploaderModalProps> = ({
       setIsOpen(false);
     }
   };
+
+  if (!user) return <></>;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -106,7 +110,7 @@ export const ImageUploaderModal: FC<ImageUploaderModalProps> = ({
           </TabsList>
           <TabsContent value="your-images">
             <div className="grid grid-cols-2 gap-4 mt-4">
-              {images && images.length ?(
+              {images && images.length ? (
                 images.map((image, index) => (
                   <div key={index} className="relative group">
                     <img
@@ -122,7 +126,9 @@ export const ImageUploaderModal: FC<ImageUploaderModalProps> = ({
                     <button
                       onClick={() => handleDelete(image, index)}
                       className={`absolute top-1 right-1 bg-red-500 text-white text-sm p-1 rounded-md hidden group-hover:block hover:bg-red-600 ${
-                        deletingImageIndex === index ? "opacity-50 cursor-not-allowed" : ""
+                        deletingImageIndex === index
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
                       }`}
                       disabled={deletingImageIndex === index}
                     >

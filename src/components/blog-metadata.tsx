@@ -12,7 +12,7 @@ interface BlogMetadataProps {
   readingTime: string
   onTitleChange: (title: string) => void
   onSubtitleChange: (subtitle: string) => void,
-  handleImageUpload : (res: ClientUploadedFileData<OurFileRouter>[]) => void
+  handleImageUpload : (res: ClientUploadedFileData<{file:string}>[]) => void
   images: string[];
   setImages: Dispatch<SetStateAction<string[]>>;
   thumbnailUrl : string

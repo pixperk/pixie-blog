@@ -56,7 +56,7 @@ export function CommentSection({ blogId, open, onOpenChange }: CommentSectionPro
 
   const handleNewComment = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (newComment.trim() && user!.id) {
+    if (newComment.trim() && user?.id) {
       const optimisticComment: Comment = {
         id: Date.now().toString(),
         content: newComment,
@@ -66,11 +66,11 @@ export function CommentSection({ blogId, open, onOpenChange }: CommentSectionPro
         },
         blogId: Date.now().toString(),
         parentId: Date.now().toString(),
-        userId: user!.id,
+        userId: user?.id,
         user: {
-          id: user!.id,
-          name: user!.name,
-          avatar: user!.avatar,
+          id: user?.id,
+          name: user?.name,
+          avatar: user?.avatar,
           socialId: new Date().toISOString(),
           bio: null,
           email: new Date().toISOString(),
@@ -81,7 +81,7 @@ export function CommentSection({ blogId, open, onOpenChange }: CommentSectionPro
       }
       setComments([optimisticComment, ...comments])
       setNewComment("")
-      const serverComment = (await addComment(newComment, user!.id, blogId, user!.uid, user!.idToken)) as Comment
+      const serverComment = (await addComment(newComment, user?.id, blogId, user?.uid, user?.idToken)) as Comment
       setComments((prevComments) => [{ ...serverComment, user: optimisticComment.user }, ...prevComments.slice(1)])
     }
   }
@@ -166,11 +166,11 @@ function CommentItem({ comment, blogId, depth }: CommentItemProps) {
   const [replies, setReplies] = useState<Comment[]>([])
   const [loadingReplies, setLoadingReplies] = useState(false)
   const { user } = useUser()
-  const iscurrentUser = user!.id === comment?.user!.id
+  const iscurrentUser = user?.id === comment?.user?.id
 
   const handleReply = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (reply.trim() && user!.id) {
+    if (reply.trim() && user?.id) {
       const optimisticReply: Comment = {
         id: Date.now().toString(),
         content: reply,
@@ -180,11 +180,11 @@ function CommentItem({ comment, blogId, depth }: CommentItemProps) {
         },
         blogId: Date.now().toString(),
         parentId: comment.id,
-        userId: user!.id,
+        userId: user?.id,
         user: {
-          id: user!.id,
-          name: user!.name,
-          avatar: user!.avatar,
+          id: user?.id,
+          name: user?.name,
+          avatar: user?.avatar,
           socialId: new Date().toISOString(),
           bio: null,
           email: new Date().toISOString(),
@@ -197,7 +197,7 @@ function CommentItem({ comment, blogId, depth }: CommentItemProps) {
       setReply("")
       setShowReplyBox(false)
       setShowReplies(true)
-      const serverReply = (await addReply(reply, user!.id, blogId, comment.id, user!.uid, user!.idToken)) as Comment
+      const serverReply = (await addReply(reply, user?.id, blogId, comment.id, user?.uid, user?.idToken)) as Comment
       setReplies((prevReplies) => [{ ...serverReply, user: optimisticReply.user }, ...prevReplies.slice(1)])
     }
   }
@@ -215,9 +215,9 @@ function CommentItem({ comment, blogId, depth }: CommentItemProps) {
   return (
     <div className={`bg-neon-green-500/5 p-4 rounded-lg border border-neon-green-500/20 ${depth > 0 ? "ml-2 sm:ml-4" : ""}`}>
       <div className="flex items-center gap-2 mb-2">
-        {comment?.user!.avatar && (
+        {comment?.user?.avatar && (
           <Image
-            src={comment.user!.avatar || "/placeholder.svg"}
+            src={comment.user?.avatar || "/placeholder.svg"}
             alt="avatar"
             width={24}
             height={24}
@@ -225,7 +225,7 @@ function CommentItem({ comment, blogId, depth }: CommentItemProps) {
           />
         )}
         <span className="font-semibold text-neon-green-400">
-          {iscurrentUser ? "You" : comment?.user!.name || "Unknown"}
+          {iscurrentUser ? "You" : comment?.user?.name || "Unknown"}
         </span>
         <span className="text-xs text-gray-400">
           {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}

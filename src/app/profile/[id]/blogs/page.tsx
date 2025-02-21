@@ -10,10 +10,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { deleteBlog, getAuthorBlogs } from "@/server/blog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle,AlertDialogFooter, AlertDialogHeader, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useUser } from "@/context/userContext";
 import toast from "react-hot-toast";
-
 
 const ITEMS_PER_PAGE = 5;
 
@@ -54,16 +63,14 @@ export default function AuthorBlogs() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const {user} = useUser()
-
-
+  const { user } = useUser();
 
   const fetchBlogs = async () => {
     try {
       setLoading(true);
       const authorId = params.id as string;
-      const newBlogs = await getAuthorBlogs(authorId, page, ITEMS_PER_PAGE) as  BlogType[];
-      
+      const newBlogs = (await getAuthorBlogs(authorId, page, ITEMS_PER_PAGE)) as BlogType[];
+
       if (newBlogs.length < ITEMS_PER_PAGE) {
         setHasMore(false);
       }
@@ -82,34 +89,38 @@ export default function AuthorBlogs() {
 
   useEffect(() => {
     fetchBlogs();
-  }, [page, fetchBlogs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
-  async function handleDelete (blogId  :string){
-    try{await deleteBlog(blogId,user!.uid!, user!.idToken!, )
-      setBlogs((prev) => prev.filter((blog) => blog.id !== blogId))
-    toast.success('Deleted')}
-    catch(err){
-      toast.error(`Unable to Delete  ${err instanceof Error && err.message}`)
+  async function handleDelete(blogId: string) {
+    try {
+      await deleteBlog(blogId, user!.uid!, user!.idToken!);
+      setBlogs((prev) => prev.filter((blog) => blog.id !== blogId));
+      toast.success("Deleted");
+    } catch (err) {
+      toast.error(`Unable to Delete  ${err instanceof Error && err.message}`);
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
+    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex items-center justify-between mb-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-8">
           <Button
             variant="outline"
             onClick={() => router.back()}
-            className="border-neon-green-500/20 hover:bg-neon-green-500/10 text-neon-green-400"
+            className="border-neon-green-500/20 hover:bg-neon-green-500/10 text-neon-green-400 mb-4 sm:mb-0"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Profile
           </Button>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-neon-green-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white to-neon-green-400 bg-clip-text text-transparent">
             All Posts
           </h1>
         </div>
 
+        {/* Blog List */}
         <div className="space-y-6">
           {blogs.map((blog) => (
             <Card
@@ -117,9 +128,9 @@ export default function AuthorBlogs() {
               className="group bg-gray-800/50 border-neon-green-500/20 hover:border-neon-green-500/40 transition-all hover:scale-[1.01]"
             >
               <CardContent className="p-6">
-                <div className="flex gap-6">
+                <div className="flex flex-col md:flex-row gap-6">
                   {blog.thumbnail && (
-                    <div className="relative w-48 h-32 rounded-lg overflow-hidden shrink-0">
+                    <div className="relative w-full md:w-48 h-32 rounded-lg overflow-hidden shrink-0">
                       <Image
                         src={blog.thumbnail}
                         alt={blog.title}
@@ -147,7 +158,7 @@ export default function AuthorBlogs() {
                 </div>
               </CardContent>
               <CardFooter className="px-6 pb-6 pt-0">
-                <div className="flex items-center justify-between w-full text-sm">
+                <div className="flex flex-col md:flex-row items-center justify-between w-full text-sm gap-2">
                   <div className="flex items-center gap-4 text-gray-400">
                     <span className="flex items-center gap-1">
                       <Clock size={14} />
@@ -162,7 +173,7 @@ export default function AuthorBlogs() {
                       {blog._count.comments}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <span className="text-gray-500">
                       {formatDistanceToNow(new Date(blog.createdAt), {
                         addSuffix: true,
@@ -176,31 +187,39 @@ export default function AuthorBlogs() {
                       Read More
                     </Button>
                     {user && user.id === blog.author.id && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button size="sm" variant="destructive" className="bg-red-500/20 text-red-400 hover:bg-red-500/30">
-              Delete
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="bg-gray-900 border-neon-green-500/20">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-neon-green-400">Delete Blog Post</AlertDialogTitle>
-              <AlertDialogDescription className="text-gray-400">
-                Are you sure you want to delete this blog post? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="bg-gray-800 text-gray-300 hover:bg-gray-700">Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => handleDelete(blog.id)}
-                className="bg-red-500/20 text-red-400 hover:bg-red-500/30"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                          >
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-gray-900 border-neon-green-500/20">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-neon-green-400">
+                              Delete Blog Post
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-gray-400">
+                              Are you sure you want to delete this blog post? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-gray-800 text-gray-300 hover:bg-gray-700">
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(blog.id)}
+                              className="bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </div>
                 </div>
               </CardFooter>

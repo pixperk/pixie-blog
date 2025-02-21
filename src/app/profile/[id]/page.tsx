@@ -27,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 import {
   ArrowRight,
   ArrowUpCircle,
@@ -43,7 +43,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-
 
 interface ProfileType {
   id: string;
@@ -111,8 +110,7 @@ const SocialLink = ({ icon: Icon, href, label }: SocialLinkProps) => (
   </a>
 );
 
-const EmbedCodeDialog = ({  }: EmbedCodeDialogProps) => {
-
+const EmbedCodeDialog = ({ userId }: EmbedCodeDialogProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -132,10 +130,7 @@ const EmbedCodeDialog = ({  }: EmbedCodeDialogProps) => {
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <p className="text-gray-400">
-          Coming soon!
-          </p>
-         
+          <p className="text-gray-400">Coming soon!</p>
         </div>
       </DialogContent>
     </Dialog>
@@ -215,29 +210,34 @@ const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
 
   const { name, bio, avatar, followers, following, blogs } = author;
 
-  async function handleDelete (blogId  :string){
-    try{await deleteBlog(blogId,user!.uid!, user!.idToken!, )
+  async function handleDelete(blogId: string) {
+    try {
+      await deleteBlog(blogId, user!.uid!, user!.idToken!);
       setAuthor((prev) =>
         prev
           ? {
               ...prev,
               blogs: prev.blogs.filter((blog) => blog.id !== blogId),
             }
-          : null,
-      )
-    toast.success('Deleted')}
-    catch(err){
-      toast.error(`Unable to Delete  ${err instanceof Error && err.message}`)
+          : null
+      );
+      toast.success("Deleted");
+    } catch (err) {
+      toast.error(
+        `Unable to Delete  ${
+          err instanceof Error && err.message ? err.message : ""
+        }`
+      );
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
+    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Profile Header */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-neon-green-500/20 to-transparent blur-3xl -z-10" />
-          <div className="flex items-center gap-6 p-6 rounded-2xl bg-gray-800/50 backdrop-blur-sm border border-neon-green-500/20">
+          <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-2xl bg-gray-800/50 backdrop-blur-sm border border-neon-green-500/20">
             <div className="relative">
               <div className="absolute inset-0 bg-neon-green-400 blur-xl opacity-20 rounded-full" />
               <Image
@@ -249,8 +249,8 @@ const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
               />
             </div>
             <div className="flex-1">
-              <div className="flex items-center gap-4 mb-4">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-neon-green-400 bg-clip-text text-transparent">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
+                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white to-neon-green-400 bg-clip-text text-transparent">
                   {name}
                 </h1>
                 <div className="flex items-center gap-2">
@@ -298,7 +298,7 @@ const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
         </div>
 
         {/* Stats Section */}
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <Dialog>
             <DialogTrigger asChild>
               <Button
@@ -316,7 +316,7 @@ const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
                 </div>
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-gray-900 border-neon-green-500/20 max-w-2xl">
+            <DialogContent className="bg-gray-900 border-neon-green-500/20 max-w-full sm:max-w-2xl">
               <DialogHeader>
                 <DialogTitle className="text-neon-green-400 text-xl mb-4">
                   Followers
@@ -343,7 +343,7 @@ const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
                 </div>
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-gray-900 border-neon-green-500/20 max-w-2xl">
+            <DialogContent className="bg-gray-900 border-neon-green-500/20 max-w-full sm:max-w-2xl">
               <DialogHeader>
                 <DialogTitle className="text-neon-green-400 text-xl mb-4">
                   Following
@@ -356,30 +356,30 @@ const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
 
         {/* Blogs Section */}
         <div>
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-neon-green-400">
               Latest Posts
             </h2>
             <Button
               onClick={() => router.push(`/profile/${userId}/blogs`)}
               variant="outline"
-              className="border-neon-green-500/20 hover:bg-neon-green-500/10 text-neon-green-400"
+              className="mt-4 sm:mt-0 border-neon-green-500/20 hover:bg-neon-green-500/10 text-neon-green-400"
             >
               All Blogs
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {blogs.slice(0, visibleBlogs).map((blog) => (
               <Card
                 key={blog.id}
                 className="group bg-gray-800/50 border-neon-green-500/20 hover:border-neon-green-500/40 transition-all hover:scale-[1.01]"
               >
                 <CardContent className="p-6">
-                  <div className="flex gap-6">
+                  <div className="flex flex-col md:flex-row gap-4">
                     {blog.thumbnail && (
-                      <div className="relative w-48 h-32 rounded-lg overflow-hidden shrink-0">
+                      <div className="relative w-full md:w-48 h-32 rounded-lg overflow-hidden shrink-0">
                         <Image
                           src={blog.thumbnail}
                           alt={blog.title}
@@ -409,7 +409,7 @@ const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
                   </div>
                 </CardContent>
                 <CardFooter className="px-6 pb-6 pt-0">
-                  <div className="flex items-center justify-between w-full text-sm">
+                  <div className="flex flex-col sm:flex-row items-center justify-between w-full text-sm gap-2">
                     <div className="flex items-center gap-4 text-gray-400">
                       <span className="flex items-center gap-1">
                         <Clock size={14} />
@@ -424,7 +424,7 @@ const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
                         {blog._count.comments}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 flex-wrap">
                       <span className="text-gray-500">
                         {formatDistanceToNow(new Date(blog.createdAt), {
                           addSuffix: true,
@@ -438,31 +438,39 @@ const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
                         Read More
                       </Button>
                       {user && user.id === userId && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button size="sm" variant="destructive" className="bg-red-500/20 text-red-400 hover:bg-red-500/30">
-              Delete
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="bg-gray-900 border-neon-green-500/20">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-neon-green-400">Delete Blog Post</AlertDialogTitle>
-              <AlertDialogDescription className="text-gray-400">
-                Are you sure you want to delete this blog post? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="bg-gray-800 text-gray-300 hover:bg-gray-700">Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => handleDelete(blog.id)}
-                className="bg-red-500/20 text-red-400 hover:bg-red-500/30"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                            >
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-gray-900 border-neon-green-500/20">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-neon-green-400">
+                                Delete Blog Post
+                              </AlertDialogTitle>
+                              <AlertDialogDescription className="text-gray-400">
+                                Are you sure you want to delete this blog post? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="bg-gray-800 text-gray-300 hover:bg-gray-700">
+                                Cancel
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(blog.id)}
+                                className="bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   </div>
                 </CardFooter>

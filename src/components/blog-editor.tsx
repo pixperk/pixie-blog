@@ -66,9 +66,9 @@ export function BlogEditor() {
     publishDate: new Date(),
     readingTime: "0 min read",
     author: {
-      name: user!.name || "",
-      avatar: user!.avatar || "",
-      bio: user!.bio || "",
+      name: user?.name || "",
+      avatar: user?.avatar || "",
+      bio: user?.bio || "",
     },
     tags: [],
   })
@@ -88,13 +88,23 @@ export function BlogEditor() {
     [],
   )
 
+  // Responsive editor height: 300px for mobile, 600px for larger screens.
+  const [editorHeight, setEditorHeight] = useState(600)
+  useEffect(() => {
+    if (window.innerWidth < 640) {
+      setEditorHeight(300)
+    } else {
+      setEditorHeight(600)
+    }
+  }, [])
+
   useEffect(() => {
     setPost((prev) => ({
       ...prev,
       author: {
-        name: user!.name || "",
-        avatar: user!.avatar || "",
-        bio: user!.bio || "",
+        name: user?.name || "",
+        avatar: user?.avatar || "",
+        bio: user?.bio || "",
       },
     }))
   }, [user])
@@ -102,14 +112,14 @@ export function BlogEditor() {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const images = await fetchUserImages(user!.id!)
+        const images = await fetchUserImages(user?.id!)
         setUserImages(images)
       } catch (error) {
         toast.error(`Failed to fetch images: ${error as Error}`)
       }
     }
 
-    if (user!.id) {
+    if (user?.id) {
       fetchImages()
     }
   }, [user])
@@ -127,8 +137,7 @@ export function BlogEditor() {
         }))
         setTags(fetchedTags)
       } catch (error) {
-        console.error(error);
-        
+        console.error(error)
         toast.error("Failed to fetch tags.")
       }
     }
@@ -147,26 +156,26 @@ export function BlogEditor() {
         post.title,
         post.content,
         post.readingTime,
-        user!.id!,
+        user?.id!,
         thumbnailUrl,
-        user!.idToken!,
-        user!.uid!,
+        user?.idToken!,
+        user?.uid!,
         selectedTags,
         post.subtitle,
       )
       toast.success("Blog post created successfully!")
       router.push("/")
     } catch (error) {
-      console.error(error);
+      console.error(error)
       toast.error("Failed to create the blog post. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleImageUpload = async (res: ClientUploadedFileData<{file:string}>[]) => {
+  const handleImageUpload = async (res: ClientUploadedFileData<{ file: string }>[]) => {
     const newImageUrl = res[0].url
-    await saveImageForUser(newImageUrl, user!.id!)
+    await saveImageForUser(newImageUrl, user?.id!)
     setUserImages((prev) => [...prev, newImageUrl])
     toast.success("Image saved")
   }
@@ -178,10 +187,14 @@ export function BlogEditor() {
     }))
   }
 
-  if(!user) router.push("/login")
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login")
+    }
+  }, [loading, user, router])
 
   return (
-    <div className="p-8 bg-gray-900 rounded-lg shadow-xl space-y-8" data-color-mode={theme}>
+    <div className="p-4 sm:p-8 bg-gray-900 rounded-lg shadow-xl space-y-8" data-color-mode={theme}>
       {loading ? (
         <div className="animate-pulse space-y-4">
           <div className="h-6 w-3/4 bg-gray-700 rounded"></div>
@@ -213,9 +226,11 @@ export function BlogEditor() {
         setPost={setPost}
       />
 
+      {/* Editor and Preview Section */}
       <div className="flex flex-col lg:flex-row gap-8">
+        {/* Editor Pane */}
         <div className="flex-1 space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-center">
             <h2 className="text-2xl font-semibold text-neon-green-400">Editor</h2>
             <ImageUploaderModal
               handleUpload={handleImageUpload}
@@ -232,7 +247,7 @@ export function BlogEditor() {
               updateReadingTime(value || "")
             }}
             preview="edit"
-            height={600}
+            height={editorHeight}
             className="border border-neon-green-400 rounded-md overflow-hidden"
             textareaProps={{
               placeholder: "Start writing your blog post here...",
@@ -240,9 +255,10 @@ export function BlogEditor() {
           />
         </div>
 
+        {/* Preview Pane */}
         <div className="flex-1 space-y-4">
           <h2 className="text-2xl font-semibold text-neon-green-400">Preview</h2>
-          <div className="bg-gray-800 p-6 rounded-md border border-neon-green-400 h-[600px] overflow-auto">
+          <div className="bg-gray-800 p-6 rounded-md border border-neon-green-400 h-[300px] md:h-[600px] overflow-auto">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               className="text-gray-300 leading-relaxed space-y-6"
@@ -273,7 +289,8 @@ export function BlogEditor() {
         </div>
       </div>
 
-      <div className="flex justify-end space-x-4 mt-8">
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4 mt-8">
         <Button
           variant="outline"
           className="border-neon-green-400 text-neon-green-400 hover:bg-neon-green-400 hover:text-gray-900 transition-all duration-300"
@@ -313,4 +330,3 @@ export function BlogEditor() {
     </div>
   )
 }
-

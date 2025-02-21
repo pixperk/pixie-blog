@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -91,10 +90,10 @@ export function CommentSection({ blogId, open, onOpenChange }: CommentSectionPro
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100 antialiased p-6 rounded-t-xl border-t border-neon-green-500/50 h-[80vh] overflow-hidden custom-scrollbar"
+        className="bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100 antialiased p-4 sm:p-6 rounded-t-xl border-t border-neon-green-500/50 h-[80vh] overflow-hidden custom-scrollbar"
       >
         <div className="[&>button]:hidden flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-neon-green-400">Comments</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-neon-green-400">Comments</h2>
           <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-gray-400 hover:text-gray-300">
             <X className="h-6 w-6" />
           </Button>
@@ -117,7 +116,7 @@ export function CommentSection({ blogId, open, onOpenChange }: CommentSectionPro
         ) : (
           <div
             ref={commentListRef}
-            className="overflow-y-auto pr-4 h-[calc(100%-150px)] scrollbar-thin scrollbar-thumb-neon-green-500 scrollbar-track-gray-800"
+            className="overflow-y-auto pr-2 sm:pr-4 h-[calc(100%-150px)] scrollbar-thin scrollbar-thumb-neon-green-500 scrollbar-track-gray-800"
           >
             <CommentList comments={comments} setComments={setComments} blogId={blogId} />
           </div>
@@ -214,7 +213,7 @@ function CommentItem({ comment, blogId, depth }: CommentItemProps) {
   }
 
   return (
-    <div className={`bg-neon-green-500/5 p-4 rounded-lg border border-neon-green-500/20 ${depth > 0 ? "ml-4" : ""}`}>
+    <div className={`bg-neon-green-500/5 p-4 rounded-lg border border-neon-green-500/20 ${depth > 0 ? "ml-2 sm:ml-4" : ""}`}>
       <div className="flex items-center gap-2 mb-2">
         {comment?.user!.avatar && (
           <Image
@@ -294,4 +293,3 @@ function CommentItem({ comment, blogId, depth }: CommentItemProps) {
     </div>
   )
 }
-

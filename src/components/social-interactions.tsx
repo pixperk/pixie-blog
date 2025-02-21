@@ -68,12 +68,12 @@ export function SocialInteractions({ blogId, initialUpvotes, commentCount, onCom
         const newJoke = await fetchJoke()
         setCurrentJoke(newJoke)
         setShowPunchline(false)
-        setTimeout(() => setShowPunchline(true), 2000) // Show punchline after 3 seconds
+        setTimeout(() => setShowPunchline(true), 2000) // Show punchline after 2 seconds
       }
 
       updateJokes() // Fetch the first joke immediately
 
-      const interval = setInterval(updateJokes, 6000) // New joke every 8 seconds
+      const interval = setInterval(updateJokes, 6000) // New joke every 6 seconds
 
       return () => clearInterval(interval)
     }
@@ -161,7 +161,8 @@ export function SocialInteractions({ blogId, initialUpvotes, commentCount, onCom
     <TooltipProvider>
       <div className="flex flex-col space-y-4">
         <Toaster position="bottom-right" toastOptions={{ duration: 3000 }} />
-        <div className="flex items-center space-x-3 sm:space-x-4">
+        {/* Use flex-col on mobile and switch to flex-row on desktop */}
+        <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
           <Upvotes blogId={blogId} initialUpvotes={initialUpvotes} />
           <Tooltip>
             <TooltipTrigger asChild>
@@ -210,7 +211,7 @@ export function SocialInteractions({ blogId, initialUpvotes, commentCount, onCom
         </div>
 
         {showAICard && (
-          <div className="p-6 bg-gray-900 border border-neon-green-500 rounded-xl shadow-lg space-y-4 relative">
+          <div className="p-4 sm:p-6 bg-gray-900 border border-neon-green-500 rounded-xl shadow-lg space-y-4 relative">
             <Button
               variant="ghost"
               size="sm"
@@ -219,7 +220,7 @@ export function SocialInteractions({ blogId, initialUpvotes, commentCount, onCom
             >
               <X className="w-4 h-4" />
             </Button>
-            <h4 className="text-neon-green-500 font-semibold text-xl flex items-center justify-between">
+            <h4 className="text-neon-green-500 font-semibold text-lg sm:text-xl flex items-center justify-between">
               {threadTweets.length > 0 ? "AI Generated Thread" : "AI Generated Tweet Content"}
               {isLoading && <Loader2 className="w-5 h-5 ml-2 animate-spin" />}
             </h4>
@@ -233,7 +234,7 @@ export function SocialInteractions({ blogId, initialUpvotes, commentCount, onCom
                   ></div>
                 </div>
                 <p className="text-gray-400 text-sm mt-2">{loadingMessage}</p>
-                <div className="bg-gray-800 p-4 rounded-lg overflow-hidden">
+                <div className="bg-gray-800 p-2 sm:p-4 rounded-lg overflow-hidden">
                   {currentJoke && (
                     <div key={currentJoke.id} className="space-y-2">
                       <p className="text-white text-sm">{currentJoke.setup}</p>
@@ -272,13 +273,13 @@ export function SocialInteractions({ blogId, initialUpvotes, commentCount, onCom
                 {threadTweets.map((tweet, index) => (
                   <div
                     key={index}
-                    className="p-4 bg-gray-800 rounded-lg border border-gray-700 flex justify-between items-start transition-all duration-300 hover:border-neon-green-500"
+                    className="p-4 bg-gray-800 rounded-lg border border-gray-700 flex flex-col sm:flex-row sm:justify-between items-start sm:items-center transition-all duration-300 hover:border-neon-green-500"
                   >
                     <p className="text-white flex-1 whitespace-pre-wrap text-sm leading-relaxed">{tweet}</p>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={`ml-4 ${
+                      className={`mt-2 sm:mt-0 sm:ml-4 ${
                         copiedTweetIndex === index ? "text-neon-green-500" : "text-gray-400 hover:text-neon-green-500"
                       } transition-all duration-300`}
                       onClick={() => handleCopyTweet(tweet, index)}
@@ -305,4 +306,3 @@ export function SocialInteractions({ blogId, initialUpvotes, commentCount, onCom
     </TooltipProvider>
   )
 }
-

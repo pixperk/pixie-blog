@@ -2,17 +2,15 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Bell, Edit, LogOut, LogIn, Menu, User, Bookmark } from "lucide-react"
+import { Edit, LogOut, LogIn, Menu, User, Bookmark } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-
 import {
   Sheet,
   SheetTrigger,
   SheetContent,
-  SheetClose,
 } from "@/components/ui/sheet"
 import {
   DropdownMenu,
@@ -24,13 +22,12 @@ import { useUser } from "@/context/userContext"
 import { signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 import { SearchCommand } from "./search-command"
-import { useCategories } from "@/context/categoryContext" // Adjust the import path as needed
+import { useCategories } from "@/context/categoryContext"
 
 export function SiteHeader() {
-  const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const activeCategory = searchParams.get("category") || "" // if no query, assume trending is active
+  const activeCategory = searchParams.get("category") || ""
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { user, loading } = useUser()
   const { categories: trendingCategories, loading: categoriesLoading } = useCategories()
@@ -40,23 +37,19 @@ export function SiteHeader() {
     router.push("/")
   }
 
-
   const extraCategories = [
     { name: "Trending", query: "" },
     { name: "Following", query: "Following" },
   ]
 
-  // Combine extra categories with the ones from our provider.
   const categoryLinks = extraCategories.concat(
     trendingCategories.map((cat: string) => ({ name: cat, query: cat }))
   )
 
   function handleCategoryClick(category: { name: string; query: string }) {
-    if (category.query === "") {
-      router.push("/")
-    } else {
-      router.push(`/?category=${encodeURIComponent(category.query)}`)
-    }
+    const path = category.query === "" ? "/" : `/?category=${encodeURIComponent(category.query)}`
+    router.push(path)
+    setIsMenuOpen(false)
   }
 
   return (
@@ -85,7 +78,7 @@ export function SiteHeader() {
                     <button
                       onClick={() => handleCategoryClick(category)}
                       className={cn(
-                        "text-sm font-medium transition-all hover:text-neon-green-400 hover:shadow-neon-green-500/50",
+                        "text-sm font-medium transition-all hover:text-neon-green-400",
                         activeCategory === category.query
                           ? "text-neon-green-500"
                           : "text-neon-green-100/70"
@@ -101,16 +94,6 @@ export function SiteHeader() {
 
           <div className="flex items-center space-x-3">
             <SearchCommand />
-
-            <motion.div whileHover={{ scale: 1.1 }}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-neon-green-100/70 hover:text-neon-green-400 hover:bg-neon-green-900/50 transition-all"
-              >
-                <Bell className="h-5 w-5" />
-              </Button>
-            </motion.div>
 
             <motion.div
               animate={{ scale: [1, 1.05, 1] }}
@@ -136,22 +119,22 @@ export function SiteHeader() {
                     className="h-8 w-8 rounded-full border border-neon-green-500/30 cursor-pointer hover:border-neon-green-400 transition-all"
                   />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-neon-green-950 border-neon-green-800/50 text-neon-green-100 shadow-lg">
+                <DropdownMenuContent className="bg-gray-800 border-neon-green-800/50 text-neon-green-100 shadow-lg">
                   <DropdownMenuItem
                     onClick={() => router.push(`/profile/${user.id}`)}
-                    className="hover:bg-neon-green-900/50 transition-all"
+                    className="cursor-pointer hover:bg-neon-green-700 transition-all"
                   >
                     <User className="h-4 w-4 mr-2" /> Profile
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => router.push("/bookmarks")}
-                    className="hover:bg-neon-green-900/50 transition-all"
+                    className="cursor-pointer hover:bg-neon-green-900/50 transition-all"
                   >
                     <Bookmark className="h-4 w-4 mr-2" /> Bookmarks
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={logout}
-                    className="text-red-400 hover:bg-red-950/50 transition-all"
+                    className="cursor-pointer text-red-400 hover:bg-red-950/50 transition-all"
                   >
                     <LogOut className="h-4 w-4 mr-2" /> Logout
                   </DropdownMenuItem>
@@ -182,34 +165,75 @@ export function SiteHeader() {
                   </Button>
                 </motion.div>
               </SheetTrigger>
-              <SheetContent side="right" className="bg-neon-green-950 text-neon-green-100">
-                <div className="flex flex-col space-y-4 p-4">
-                  {categoryLinks.map((category) => (
-                    <button
-                      key={category.name}
-                      onClick={() => {
-                        handleCategoryClick(category)
-                        setIsMenuOpen(false)
-                      }}
-                      className={cn(
-                        "text-lg font-medium transition-all hover:text-neon-green-400",
-                        activeCategory === category.query
-                          ? "text-neon-green-500"
-                          : "text-neon-green-100/70"
-                      )}
-                    >
-                      {category.name}
-                    </button>
-                  ))}
-                  <SheetClose asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-neon-green-100/70 hover:text-neon-green-400 hover:bg-neon-green-900/50 transition-all"
-                    >
-                      <LogOut className="h-5 w-5" />
-                    </Button>
-                  </SheetClose>
+              <SheetContent side="right" className="bg-gray-800 text-neon-green-100 p-6">
+                <div className="flex flex-col h-full justify-between">
+                  <div className="space-y-6">
+                    {user && (
+                      <div className="flex items-center space-x-3 pb-4 border-b border-neon-green-800/50">
+                        <img
+                          src={user.avatar || "/default-avatar.png"}
+                          alt="Profile"
+                          className="h-10 w-10 rounded-full border border-neon-green-500/30"
+                        />
+                        <div>
+                          <p className="font-medium text-neon-green-300">{user.name}</p>
+                          <p className="text-xs text-neon-green-400/70">{user.bio}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-4">
+                      {categoryLinks.map((category) => (
+                        <button
+                          key={category.name}
+                          onClick={() => handleCategoryClick(category)}
+                          className={cn(
+                            "w-full text-left p-2 rounded-lg transition-all",
+                            activeCategory === category.query
+                              ? "bg-neon-green-900/50 text-neon-green-400"
+                              : "hover:bg-neon-green-900/30 text-neon-green-100/70"
+                          )}
+                        >
+                          {category.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-6 border-t border-neon-green-800/50">
+                    {user ? (
+                      <>
+                        <motion.div whileHover={{ scale: 1.02 }}>
+                          <Button
+                            onClick={() => router.push("/write")}
+                            className="w-full flex items-center justify-center space-x-2 bg-neon-green-900/50 hover:bg-neon-green-800/50 text-neon-green-400"
+                          >
+                            <Edit className="h-5 w-5" />
+                            <span>Write</span>
+                          </Button>
+                        </motion.div>
+                        
+                        <button
+                          onClick={logout}
+                          className="w-full p-2 rounded-lg flex items-center space-x-3 text-red-400 hover:bg-red-950/50 transition-all"
+                        >
+                          <LogOut className="h-5 w-5" />
+                          <span>Logout</span>
+                        </button>
+                      </>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          router.push("/login")
+                          setIsMenuOpen(false)
+                        }}
+                        className="w-full flex items-center justify-center space-x-2 bg-neon-green-900/50 hover:bg-neon-green-800/50 text-neon-green-400"
+                      >
+                        <LogIn className="h-5 w-5" />
+                        <span>Login</span>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>

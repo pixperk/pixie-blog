@@ -200,7 +200,7 @@ export async function updateUserProfile(
 
     // Update user profile in the database
     const user = await prisma.user.update({
-      where: { id: validatedData.id },
+      where: { id: validatedData.id, socialId : validatedData.uid },
       data: {
         bio: validatedData.bio,
         github: validatedData.github,

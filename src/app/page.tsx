@@ -1,6 +1,6 @@
 
 import HomeList from "@/components/home-list";
-import { PortfolioLink } from "@/components/portfolio-link";
+import { BlogAside } from "@/components/portfolio-link";
 
 export default async function BlogPage() {
   return (
@@ -12,13 +12,8 @@ export default async function BlogPage() {
               <HomeList/>
             </div>
             <aside className="lg:col-span-4 space-y-8">
-              <div className="rounded-lg border border-neon-green-800 p-6 bg-neon-green-900/20 shadow-lg">
-                <h2 className="text-xl font-semibold text-neon-green-400 mb-6">
-                  Staff Picks
-                </h2>
-                
-              </div>
-              <PortfolioLink />
+              
+              <BlogAside />
             </aside>
           </div>
         </div>

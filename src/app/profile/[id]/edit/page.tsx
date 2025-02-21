@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,11 +34,14 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
   const router = useRouter();
   const userId = use(params).id;
 
+  if(!user || userId!=user.id){
+    notFound()
+  }
+
   const {
     control,
     handleSubmit,
     setValue,
-    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(profileSchema),

@@ -219,7 +219,6 @@ export function BlogEditor() {
               images={userImages}
               setImages={setUserImages}
             />
-             
           </div>
 
           <MDEditor

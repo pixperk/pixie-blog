@@ -106,8 +106,8 @@ export function CommentSection({ blogId, open, onOpenChange }: CommentSectionPro
             onChange={(e) => setNewComment(e.target.value)}
             className="w-full bg-neon-green-500/5 border-neon-green-500/20 focus:border-neon-green-500/50 focus:ring-neon-green-500/30 placeholder-neon-green-500/50 mb-2"
           />
-          <Button type="submit" className="bg-neon-green-500 text-black hover:bg-neon-green-600">
-            Submit Comment
+          <Button disabled={!user} type="submit" className="bg-neon-green-500 text-black hover:bg-neon-green-600">
+            {!user ? "Login to Comment" : "Comment"}
           </Button>
         </form>
         {isLoading ? (
@@ -265,8 +265,8 @@ function CommentItem({ comment, setComments, blogId, depth }: CommentItemProps) 
               onChange={(e) => setReply(e.target.value)}
               className="w-full bg-neon-green-500/5 border-neon-green-500/20 focus:border-neon-green-500/50 focus:ring-neon-green-500/30 placeholder-neon-green-500/50"
             />
-            <Button type="submit" className="bg-neon-green-500 text-black hover:bg-neon-green-600">
-              Submit Reply
+            <Button disabled={!user} type="submit" className="bg-neon-green-500 text-black hover:bg-neon-green-600">
+              {!user ? "Login to Reply" : "Reply"}
             </Button>
           </motion.form>
         )}

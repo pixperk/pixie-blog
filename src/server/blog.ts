@@ -4,6 +4,7 @@ import prisma from "@/lib/db";
 import { verifyIdTokenWithoutAdmin } from "@/lib/firebaseAuthVerify";
 import { redis } from "@/lib/redis";
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { revalidatePath } from "next/cache";
 import { z, ZodError } from "zod";
 
 const createBlogSchema = z.object({
@@ -75,23 +76,20 @@ export async function createBlog(
 }
 
 export async function getBlogById(id: string) {
-  //cache the blog by redis
-  const cachedBlog = await redis.get(`blog:${id}`);
-  if (cachedBlog) {
-    return JSON.parse(cachedBlog);
-  }
+ 
   const blog = await prisma.blog.findUnique({
     where: {
       id,
     },
     include: {
       author: true,
+      tags : true,
       _count: {
         select: { comments: true, upvotes: true },
       },
     },
   });
-  await redis.set(`blog:${id}`, JSON.stringify(blog));
+ 
   return blog;
 }
 
@@ -473,7 +471,8 @@ export async function generateRecommendedContent(blogId: string) {
       where: {
         tags: {
           some: {
-            tag: { in: blog.tags }, // Match at least one tag
+            // Instead of using blog.tags directly, map to an array of strings.
+            tag: { in: blog.tags.map(t => t.tag) },
           },
         },
         NOT: { id: blogId },
@@ -728,7 +727,7 @@ export async function getAuthorBlogs(
   authorId: string,
   page: number = 1,
   limit: number = 5
-) : Promise<BlogType> {
+){
   const blogs = await prisma.blog.findMany({
     where: {
       authorId,
@@ -746,7 +745,67 @@ export async function getAuthorBlogs(
     },
     skip: (page - 1) * limit,
     take: limit,
-  }) as BlogType;
+  });
+  
 
   return blogs;
+}
+
+
+export async function blogWordCountAndTotalUsers(){
+  const blogs = await prisma.blog.findMany({
+    select : {
+      content : true
+    }
+  })
+ let wordCount = 0;
+ blogs.forEach((blog)=>{wordCount += blog.content.length})
+
+ const users = await prisma.user.findMany({
+  select : {
+    blogs : {
+      select : 
+      {
+        id : true
+      }
+    }
+  }
+ })
+
+ let activeUserCount = 0;
+ users.forEach((user)=>{
+  user.blogs.length >= 2 && activeUserCount++
+ })
+
+ return {words : wordCount, activeUsers : activeUserCount}
+
+}
+
+export async function deleteBlog(
+  blogId : string,
+  uid: string,
+  idToken: string
+) {
+  try {
+
+    // Verify Firebase token
+    const decodedToken = await verifyIdTokenWithoutAdmin(idToken);
+
+    if (decodedToken.user_id !== uid) {
+      throw new Error("Unauthorized user");
+    }
+
+    const blog = await prisma.blog.delete({
+      where : {
+        id : blogId,
+        author : {
+          socialId : uid
+        }
+      }
+    })
+    return blog;
+  }catch(e){
+    console.error("Error deleting blog:", e);
+    throw new Error(e instanceof ZodError ? e.message : "Error deleting blog");
+  }
 }

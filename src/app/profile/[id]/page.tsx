@@ -1,20 +1,49 @@
-"use client"
+"use client";
 
 import FollowButton from "@/components/follow-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useUser } from "@/context/userContext";
+import { deleteBlog } from "@/server/blog";
 import { getUserProfileById } from "@/server/user";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowRight, ArrowUpCircle, Clock, Code, Github, Mail, MessageSquare, Twitter, Users } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  ArrowRight,
+  ArrowUpCircle,
+  Clock,
+  Code,
+  Github,
+  Mail,
+  MessageSquare,
+  Twitter,
+  Users,
+} from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
+import { revalidatePath } from "next/cache";
 
 interface ProfileType {
   id: string;
@@ -82,8 +111,7 @@ const SocialLink = ({ icon: Icon, href, label }: SocialLinkProps) => (
   </a>
 );
 
-const EmbedCodeDialog = ({ userId }: EmbedCodeDialogProps) => {
-  const embedCode = `<iframe src="${process.env.NEXT_PUBLIC_APP_URL}/profile/${userId}/embed" width="100%" height="400" frameborder="0"></iframe>`;
+const EmbedCodeDialog = ({  }: EmbedCodeDialogProps) => {
 
   return (
     <Dialog>
@@ -99,32 +127,24 @@ const EmbedCodeDialog = ({ userId }: EmbedCodeDialogProps) => {
       </DialogTrigger>
       <DialogContent className="bg-gray-900 border-neon-green-500/20">
         <DialogHeader>
-          <DialogTitle className="text-neon-green-400">Embed Your Profile</DialogTitle>
+          <DialogTitle className="text-neon-green-400">
+            Embed Your Profile
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <p className="text-gray-400">Copy this code to embed your profile on your website:</p>
-          <div className="bg-gray-800 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto">
-            <pre className="whitespace-pre-wrap break-all">{embedCode}</pre>
-          </div>
-          <Button
-            size="sm"
-            className="bg-neon-green-500/20 hover:bg-neon-green-500/30 text-neon-green-400 w-full"
-            onClick={() => {
-              navigator.clipboard.writeText(embedCode);
-              toast.success("Embed code copied to clipboard!");
-            }}
-          >
-            Copy Embed Code
-          </Button>
+          <p className="text-gray-400">
+          Coming soon!
+          </p>
+         
         </div>
       </DialogContent>
     </Dialog>
   );
 };
 
-const FollowList = ({ users, title }: FollowListProps) => {
+const FollowList = ({ users }: FollowListProps) => {
   const router = useRouter();
-  
+
   return (
     <ScrollArea className="h-[400px] pr-4">
       <div className="space-y-4">
@@ -162,13 +182,13 @@ const FollowList = ({ users, title }: FollowListProps) => {
       </div>
     </ScrollArea>
   );
-}
+};
 
-const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
+const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
   const [author, setAuthor] = useState<ProfileType | null>();
   const [visibleBlogs, setVisibleBlogs] = useState(5);
   const router = useRouter();
-  const {user} = useUser();
+  const { user } = useUser();
 
   const handleShowMore = () => {
     setVisibleBlogs((prev) => prev + 5);
@@ -177,20 +197,39 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
   const userId = use(params).id;
 
   useEffect(() => {
-    const fetchAuthor = async() => {
+    const fetchAuthor = async () => {
       const response = await getUserProfileById(userId);
       setAuthor(response);
-    }
+    };
     fetchAuthor();
-  }, [userId])
+  }, [userId]);
 
-  if(!author) return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <div className="animate-pulse text-neon-green-400 text-xl">Loading profile...</div>
-    </div>
-  );
+  if (!author)
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-pulse text-neon-green-400 text-xl">
+          Loading profile...
+        </div>
+      </div>
+    );
 
-  const {name, bio, avatar, followers, following, blogs} = author;
+  const { name, bio, avatar, followers, following, blogs } = author;
+
+  async function handleDelete (blogId  :string){
+    try{await deleteBlog(blogId,user?.uid!, user?.idToken!, )
+      setAuthor((prev) =>
+        prev
+          ? {
+              ...prev,
+              blogs: prev.blogs.filter((blog) => blog.id !== blogId),
+            }
+          : null,
+      )
+    toast.success('Deleted')}
+    catch(err){
+      toast.error(`Unable to Delete  ${err instanceof Error && err.message}`)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
@@ -262,7 +301,10 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
         <div className="flex gap-4">
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" className="flex-1 h-20 bg-gray-800/50 border-neon-green-500/20 hover:bg-gray-800 hover:border-neon-green-500/40 group">
+              <Button
+                variant="outline"
+                className="flex-1 h-20 bg-gray-800/50 border-neon-green-500/20 hover:bg-gray-800 hover:border-neon-green-500/40 group"
+              >
                 <div className="text-center">
                   <div className="text-2xl font-bold text-neon-green-400 group-hover:scale-105 transition-transform">
                     {followers.length}
@@ -276,7 +318,9 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
             </DialogTrigger>
             <DialogContent className="bg-gray-900 border-neon-green-500/20 max-w-2xl">
               <DialogHeader>
-                <DialogTitle className="text-neon-green-400 text-xl mb-4">Followers</DialogTitle>
+                <DialogTitle className="text-neon-green-400 text-xl mb-4">
+                  Followers
+                </DialogTitle>
               </DialogHeader>
               <FollowList users={followers} title="Followers" />
             </DialogContent>
@@ -284,7 +328,10 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" className="flex-1 h-20 bg-gray-800/50 border-neon-green-500/20 hover:bg-gray-800 hover:border-neon-green-500/40 group">
+              <Button
+                variant="outline"
+                className="flex-1 h-20 bg-gray-800/50 border-neon-green-500/20 hover:bg-gray-800 hover:border-neon-green-500/40 group"
+              >
                 <div className="text-center">
                   <div className="text-2xl font-bold text-neon-green-400 group-hover:scale-105 transition-transform">
                     {following.length}
@@ -298,7 +345,9 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
             </DialogTrigger>
             <DialogContent className="bg-gray-900 border-neon-green-500/20 max-w-2xl">
               <DialogHeader>
-                <DialogTitle className="text-neon-green-400 text-xl mb-4">Following</DialogTitle>
+                <DialogTitle className="text-neon-green-400 text-xl mb-4">
+                  Following
+                </DialogTitle>
               </DialogHeader>
               <FollowList users={following} title="Following" />
             </DialogContent>
@@ -308,7 +357,9 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
         {/* Blogs Section */}
         <div>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-neon-green-400">Latest Posts</h2>
+            <h2 className="text-2xl font-bold text-neon-green-400">
+              Latest Posts
+            </h2>
             <Button
               onClick={() => router.push(`/profile/${userId}/blogs`)}
               variant="outline"
@@ -321,7 +372,10 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
 
           <div className="space-y-4">
             {blogs.slice(0, visibleBlogs).map((blog) => (
-              <Card key={blog.id} className="group bg-gray-800/50 border-neon-green-500/20 hover:border-neon-green-500/40 transition-all hover:scale-[1.01]">
+              <Card
+                key={blog.id}
+                className="group bg-gray-800/50 border-neon-green-500/20 hover:border-neon-green-500/40 transition-all hover:scale-[1.01]"
+              >
                 <CardContent className="p-6">
                   <div className="flex gap-6">
                     {blog.thumbnail && (
@@ -335,8 +389,12 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-xl font-bold text-white mb-2 truncate">{blog.title}</h3>
-                      <p className="text-gray-400 mb-3 line-clamp-2">{blog.subtitle}</p>
+                      <h3 className="text-xl font-bold text-white mb-2 truncate">
+                        {blog.title}
+                      </h3>
+                      <p className="text-gray-400 mb-3 line-clamp-2">
+                        {blog.subtitle}
+                      </p>
                       <div className="flex gap-2 mb-4 flex-wrap">
                         {blog.tags.map((tag, index) => (
                           <Badge
@@ -368,7 +426,9 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="text-gray-500">
-                        {formatDistanceToNow(new Date(blog.createdAt), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(blog.createdAt), {
+                          addSuffix: true,
+                        })}
                       </span>
                       <Button
                         size="sm"
@@ -377,6 +437,32 @@ const AuthorProfile = ({params} : {params : Promise<{id : string}>}) => {
                       >
                         Read More
                       </Button>
+                      {user && user.id === userId && (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button size="sm" variant="destructive" className="bg-red-500/20 text-red-400 hover:bg-red-500/30">
+              Delete
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="bg-gray-900 border-neon-green-500/20">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-neon-green-400">Delete Blog Post</AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-400">
+                Are you sure you want to delete this blog post? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-gray-800 text-gray-300 hover:bg-gray-700">Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => handleDelete(blog.id)}
+                className="bg-red-500/20 text-red-400 hover:bg-red-500/30"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
                     </div>
                   </div>
                 </CardFooter>

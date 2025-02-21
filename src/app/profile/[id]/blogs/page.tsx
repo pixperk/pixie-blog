@@ -9,18 +9,52 @@ import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BlogType, getAuthorBlogs } from "@/server/blog";
+import { deleteBlog, getAuthorBlogs } from "@/server/blog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle,AlertDialogFooter, AlertDialogHeader, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useUser } from "@/context/userContext";
+import toast from "react-hot-toast";
 
 
 const ITEMS_PER_PAGE = 5;
 
+type BlogType = {
+  id: string;
+  title: string;
+  subtitle: string;
+  content: string;
+  thumbnail: string | null;
+  readingTime: string;
+  createdAt: Date;
+  author: {
+    id: string;
+    name: string;
+    socialId: string;
+    email: string;
+    bio: string | null;
+    avatar: string;
+    github: string | null;
+    twitter: string | null;
+    linkedin: string | null;
+  };
+  tags: {
+    id: string;
+    blogId: string;
+    tag: string;
+  }[];
+  _count: {
+    upvotes: number;
+    comments: number;
+  };
+};
+
 export default function AuthorBlogs() {
   const params = useParams();
   const router = useRouter();
-  const [blogs, setBlogs] = useState<BlogType>([]);
+  const [blogs, setBlogs] = useState<BlogType[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
+  const {user} = useUser()
 
   useEffect(() => {
     fetchBlogs();
@@ -30,7 +64,7 @@ export default function AuthorBlogs() {
     try {
       setLoading(true);
       const authorId = params.id as string;
-      const newBlogs = await getAuthorBlogs(authorId, page, ITEMS_PER_PAGE);
+      const newBlogs = await getAuthorBlogs(authorId, page, ITEMS_PER_PAGE) as  BlogType[];
       
       if (newBlogs.length < ITEMS_PER_PAGE) {
         setHasMore(false);
@@ -47,6 +81,15 @@ export default function AuthorBlogs() {
       setLoading(false);
     }
   };
+
+  async function handleDelete (blogId  :string){
+    try{await deleteBlog(blogId,user?.uid!, user?.idToken!, )
+      setBlogs((prev) => prev.filter((blog) => blog.id !== blogId))
+    toast.success('Deleted')}
+    catch(err){
+      toast.error(`Unable to Delete  ${err instanceof Error && err.message}`)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
@@ -130,6 +173,32 @@ export default function AuthorBlogs() {
                     >
                       Read More
                     </Button>
+                    {user && user.id === blog.author.id && (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button size="sm" variant="destructive" className="bg-red-500/20 text-red-400 hover:bg-red-500/30">
+              Delete
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="bg-gray-900 border-neon-green-500/20">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-neon-green-400">Delete Blog Post</AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-400">
+                Are you sure you want to delete this blog post? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-gray-800 text-gray-300 hover:bg-gray-700">Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => handleDelete(blog.id)}
+                className="bg-red-500/20 text-red-400 hover:bg-red-500/30"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
                   </div>
                 </div>
               </CardFooter>

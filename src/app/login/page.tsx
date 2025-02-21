@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { loginWithGithub, loginWithGoogle } from "@/lib/firebase"
 import { motion } from "framer-motion"
-import { useRouter } from "next/navigation"
-import { Github, Mail } from "lucide-react"
-import toast from "react-hot-toast"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { Suspense, useState } from "react"
+import toast from "react-hot-toast"
+import { FaGithub, FaGoogle } from "react-icons/fa"
 
 export default function AuthForm() {
   const [isLoading, setIsLoading] = useState(false)
@@ -34,6 +34,7 @@ export default function AuthForm() {
   }
 
   return (
+    <Suspense fallback={<>Loading...</>}>
     <div className="fixed inset-0 overflow-hidden flex items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -98,7 +99,7 @@ export default function AuthForm() {
           >
             <span className="absolute inset-0 bg-neon-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <span className="relative flex items-center justify-center gap-2">
-              <Github className="h-5 w-5" />
+              <FaGithub className="h-5 w-5" />
               Sign in with GitHub
             </span>
           </Button>
@@ -110,7 +111,7 @@ export default function AuthForm() {
           >
             <span className="absolute inset-0 bg-neon-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <span className="relative flex items-center justify-center gap-2">
-              <Mail className="h-5 w-5" />
+              <FaGoogle className="h-5 w-5" />
               Sign in with Google
             </span>
           </Button>
@@ -142,5 +143,6 @@ export default function AuthForm() {
         </motion.div>
       </motion.div>
     </div>
+    </Suspense>
   )
 }

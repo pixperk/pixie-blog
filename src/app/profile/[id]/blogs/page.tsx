@@ -173,10 +173,10 @@ export default function AuthorBlogs() {
                       {blog._count.comments}
                     </span>
                   </div>
-                  <div className="flex flex-wrap items-center gap-4">
-                    <span className="text-gray-500">
+                  <div className=" flex flex-wrap items-center gap-4">
+                    <span className="text-gray-500 ml-4">
                       {formatDistanceToNow(new Date(blog.createdAt), {
-                        addSuffix: true,
+                      addSuffix: true,
                       })}
                     </span>
                     <Button

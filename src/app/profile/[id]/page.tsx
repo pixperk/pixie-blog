@@ -110,7 +110,7 @@ const SocialLink = ({ icon: Icon, href, label }: SocialLinkProps) => (
   </a>
 );
 
-const EmbedCodeDialog = ({ userId }: EmbedCodeDialogProps) => {
+const EmbedCodeDialog = ({}: EmbedCodeDialogProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -180,7 +180,7 @@ const FollowList = ({ users }: FollowListProps) => {
 };
 
 const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
-  const [author, setAuthor] = useState<ProfileType | null>();
+  const [author, setAuthor] = useState<ProfileType | null>(null);
   const [visibleBlogs, setVisibleBlogs] = useState(5);
   const router = useRouter();
   const { user } = useUser();
@@ -370,66 +370,66 @@ const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {blogs.slice(0, visibleBlogs).map((blog) => (
               <Card
                 key={blog.id}
-                className="group bg-gray-800/50 border-neon-green-500/20 hover:border-neon-green-500/40 transition-all hover:scale-[1.01]"
+                className="group bg-gray-800/50 border border-neon-green-500/20 hover:border-neon-green-500/40 transition-all hover:scale-[1.02] shadow-md hover:shadow-lg flex flex-col"
               >
-                <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row gap-4">
-                    {blog.thumbnail && (
-                      <div className="relative w-full md:w-48 h-32 rounded-lg overflow-hidden shrink-0">
-                        <Image
-                          src={blog.thumbnail}
-                          alt={blog.title}
-                          fill
-                          className="object-cover transition-transform group-hover:scale-110"
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-xl font-bold text-white mb-2 truncate">
-                        {blog.title}
-                      </h3>
-                      <p className="text-gray-400 mb-3 line-clamp-2">
-                        {blog.subtitle}
-                      </p>
-                      <div className="flex gap-2 mb-4 flex-wrap">
-                        {blog.tags.map((tag, index) => (
-                          <Badge
-                            key={index}
-                            className="bg-neon-green-500/20 text-neon-green-400 hover:bg-neon-green-500/30"
-                          >
-                            {tag.tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
+                {blog.thumbnail && (
+                  <div className="relative w-full h-48 overflow-hidden">
+                    <Image
+                      src={blog.thumbnail}
+                      alt={blog.title}
+                      fill
+                      className="object-cover transition-transform group-hover:scale-110"
+                    />
+                  </div>
+                )}
+                <CardContent className="p-4 flex-1">
+                  <h3 className="text-xl font-bold text-white mb-2 truncate">
+                    {blog.title}
+                  </h3>
+                  <p className="text-gray-400 mb-3 line-clamp-3">
+                    {blog.subtitle}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {blog.tags.map((tag, index) => (
+                      <Badge
+                        key={index}
+                        className="bg-neon-green-500/20 text-neon-green-400"
+                      >
+                        {tag.tag}
+                      </Badge>
+                    ))}
                   </div>
                 </CardContent>
-                <CardFooter className="px-6 pb-6 pt-0">
-                  <div className="flex flex-col sm:flex-row items-center justify-between w-full text-sm gap-2">
-                    <div className="flex items-center gap-4 text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <Clock size={14} />
-                        {blog.readingTime}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <ArrowUpCircle size={14} />
-                        {blog._count.upvotes}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MessageSquare size={14} />
-                        {blog._count.comments}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-4 flex-wrap">
-                      <span className="text-gray-500">
+                <CardFooter className="px-4 pb-4 pt-0">
+                  <div className="flex flex-col gap-2">
+                    {/* First row: metadata and timestamp */}
+                    <div className="flex items-center justify-between text-gray-400 text-sm">
+                      <div className="flex items-center gap-4">
+                        <span className="flex items-center gap-1">
+                          <Clock size={14} />
+                          {blog.readingTime}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <ArrowUpCircle size={14} />
+                          {blog._count.upvotes}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MessageSquare size={14} />
+                          {blog._count.comments}
+                        </span>
+                      </div>
+                      <span className="text-gray-500 text-xs ml-4">
                         {formatDistanceToNow(new Date(blog.createdAt), {
                           addSuffix: true,
                         })}
                       </span>
+                    </div>
+                    {/* Second row: action buttons */}
+                    <div className="flex items-center gap-2">
                       <Button
                         size="sm"
                         onClick={() => router.push(`/blog/${blog.id}`)}

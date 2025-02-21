@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -53,6 +53,7 @@ export function SiteHeader() {
   }
 
   return (
+    <Suspense fallback = {<>Loading...</>}>
     <div className="fixed top-4 left-0 right-0 z-50 mx-auto max-w-7xl px-4">
       <motion.header
         initial={{ opacity: 0, y: -20 }}
@@ -241,5 +242,6 @@ export function SiteHeader() {
         </div>
       </motion.header>
     </div>
+    </Suspense>
   )
 }

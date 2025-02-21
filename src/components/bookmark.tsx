@@ -14,7 +14,7 @@ interface BookmarkProps {
 
 export function Bookmark({ blogId }: BookmarkProps) {
   const { user } = useUser();
-  const userId = user?.id;
+  const userId = user!.id;
   const router = useRouter();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -36,7 +36,7 @@ export function Bookmark({ blogId }: BookmarkProps) {
 
     startTransition(async () => {
       try {
-        const response = await addBookmark(blogId, userId, user.uid, user.idToken);
+        const response = await addBookmark(blogId, userId, user!.uid, user!.idToken);
         if (response.message !== "bookmark added") {
           setIsBookmarked(false); // Revert on failure
         }

@@ -4,7 +4,6 @@ import prisma from "@/lib/db";
 import { verifyIdTokenWithoutAdmin } from "@/lib/firebaseAuthVerify";
 import { redis } from "@/lib/redis";
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
-import { revalidatePath } from "next/cache";
 import { z, ZodError } from "zod";
 
 const createBlogSchema = z.object({
@@ -774,7 +773,7 @@ export async function blogWordCountAndTotalUsers(){
 
  let activeUserCount = 0;
  users.forEach((user)=>{
-  user.blogs.length >= 2 && activeUserCount++
+  if(user.blogs.length >= 2)activeUserCount++
  })
 
  return {words : wordCount, activeUsers : activeUserCount}

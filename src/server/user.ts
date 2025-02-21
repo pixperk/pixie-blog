@@ -98,7 +98,7 @@ export async function toggleFollowAuthor(userId: string, authorId: string, userU
       },
     });
 
-    const isFollowing = user?.following?.length;
+    const isFollowing = user!.following?.length;
 
     const updatedUser = await prisma.user.update({
       where: { id: validatedData.userId },
@@ -127,7 +127,7 @@ export const isUserFollowingAuthor = async (userId: string, authorId: string) =>
       },
     });
 
-    return !!user?.following?.length;
+    return !!user!.following?.length;
   } catch (error) {
     console.error("Error checking follow status:", error);
     throw new Error(error instanceof ZodError ? error.message : "Unable to check follow status");

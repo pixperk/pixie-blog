@@ -24,8 +24,8 @@ const FollowButton = ({ author }: { author: User }) => {
     if (!user || user.id === author.id) return;
     setLoading(true);
     try {
-      const idToken = await auth.currentUser?.getIdToken()
-      const userUid = auth.currentUser?.uid
+      const idToken = await auth.currentUser!.getIdToken()
+      const userUid = auth.currentUser!.uid
       await toggleFollowAuthor(user.id, author.id, userUid!, idToken!);
       setIsFollowing((prev) => !prev);
     } catch (error) {

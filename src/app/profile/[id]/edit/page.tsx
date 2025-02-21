@@ -1,22 +1,21 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { ImageUploaderModal } from "@/components/image-uploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import toast from "react-hot-toast";
-import { notFound, useRouter } from "next/navigation";
-import { z } from "zod";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageUploaderModal } from "@/components/image-uploader";
 import { useUser } from "@/context/userContext";
-import {  getUserProfileById, updateUserProfile } from "@/server/user";
 import { auth } from "@/lib/firebase";
-import { ClientUploadedFileData } from "uploadthing/types";
-import { OurFileRouter } from "@/app/api/uploadthing/core";
 import { saveImageForUser } from "@/server/image";
+import { getUserProfileById, updateUserProfile } from "@/server/user";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { notFound, useRouter } from "next/navigation";
+import { use, useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import { ClientUploadedFileData } from "uploadthing/types";
+import { z } from "zod";
 
 const profileSchema = z.object({
   bio: z.string().max(300, "Bio must be under 300 characters."),
@@ -64,8 +63,9 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
         setValue("linkedin", data.linkedin || "");
         setValue("email", data.email || "");
         setProfilePicture(data.avatar || "");
-        setUserImages(user?.images || []);
+        setUserImages(user!.images || []);
       } catch (error) {
+        console.error(error)
         toast.error("Failed to load profile.");
       }
     };
@@ -73,9 +73,9 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
     fetchProfile();
   }, [userId, user, setValue]);
 
-  const handleImageUpload = async (res: ClientUploadedFileData<OurFileRouter>[]) => {
+  const handleImageUpload = async (res: ClientUploadedFileData<{file:string}>[]) => {
     const newImageUrl = res[0].url;
-    await saveImageForUser(newImageUrl, user?.id!);
+    await saveImageForUser(newImageUrl, user!.id!);
     setUserImages((prev) => (Array.isArray(prev) ? [...prev, newImageUrl] : [newImageUrl]));
     toast.success("Image saved");
   };
@@ -83,7 +83,7 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
   const onSubmit = async (data: any) => {
     setLoading(true);
     try {
-      const idToken = await auth.currentUser?.getIdToken();
+      const idToken = await auth.currentUser!.getIdToken();
       await updateUserProfile(
         {
           id: userId,
@@ -93,7 +93,7 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
           linkedin: data.linkedin,
           email: data.email,
           avatar: profilePicture,
-          uid: auth.currentUser?.uid!,
+          uid: auth.currentUser!.uid!,
         },
         idToken!
       );

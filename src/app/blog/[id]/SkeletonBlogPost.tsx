@@ -1,6 +1,4 @@
 "use client";
-
-import { SiteHeader } from "@/components/site-header";
 import { TracingBeam } from "@/components/tracing-beam";
 
 export default function SkeletonBlogPost() {

@@ -1,9 +1,8 @@
 import { Input } from "@/components/ui/input"
 import { format } from "date-fns"
-import { ThumbnailUploader } from "./thumbnail-uploader"
 import { Dispatch, SetStateAction } from "react"
 import { ClientUploadedFileData } from "uploadthing/types"
-import { OurFileRouter } from "@/app/api/uploadthing/core"
+import { ThumbnailUploader } from "./thumbnail-uploader"
 
 interface BlogMetadataProps {
   title: string

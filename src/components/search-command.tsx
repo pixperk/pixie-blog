@@ -75,7 +75,6 @@ export function SearchCommand({ ...props }: DialogProps) {
     }
   }, [])
 
-  const debouncedSearch = React.useMemo(() => debounce(performSearch, 300), [performSearch])
 
   React.useEffect(() => {
     if (open) {
@@ -256,12 +255,4 @@ export function SearchCommand({ ...props }: DialogProps) {
   )
 }
 
-function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout
-
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout)
-    timeout = setTimeout(() => func(...args), wait)
-  }
-}
 

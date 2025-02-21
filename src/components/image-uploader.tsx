@@ -1,16 +1,15 @@
 "use client";
 
-import { type Dispatch, type FC, type SetStateAction, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trash2, Loader2 } from "lucide-react";
-import { UploadDropzone } from "@/lib/uploadthing";
-import type { ClientUploadedFileData } from "uploadthing/types";
-import type { OurFileRouter } from "@/app/api/uploadthing/core";
-import { deleteImage } from "@/server/image";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@/context/userContext";
+import { UploadDropzone } from "@/lib/uploadthing";
+import { deleteImage } from "@/server/image";
+import { Loader2, Trash2 } from "lucide-react";
+import { type Dispatch, type FC, type SetStateAction, useState } from "react";
 import toast from "react-hot-toast";
+import type { ClientUploadedFileData } from "uploadthing/types";
 
 interface ImageUploaderModalProps {
   handleUpload: (res: ClientUploadedFileData<{file:string}>[]) => void;
@@ -41,6 +40,7 @@ export const ImageUploaderModal: FC<ImageUploaderModalProps> = ({
   };
 
   const handleUploadError = (error: Error) => {
+    console.error(error);
     toast.error(`Upload error`);
     setActiveTab("your-images");
   };

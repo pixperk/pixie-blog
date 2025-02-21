@@ -43,7 +43,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-import { revalidatePath } from "next/cache";
+
 
 interface ProfileType {
   id: string;
@@ -216,7 +216,7 @@ const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
   const { name, bio, avatar, followers, following, blogs } = author;
 
   async function handleDelete (blogId  :string){
-    try{await deleteBlog(blogId,user?.uid!, user?.idToken!, )
+    try{await deleteBlog(blogId,user!.uid!, user!.idToken!, )
       setAuthor((prev) =>
         prev
           ? {

@@ -1,12 +1,12 @@
 "use client"
 
-import { motion } from "framer-motion"
-import Link from "next/link"
-import { useEffect, useState } from "react"
-import { FaBrain, FaRocket, FaUsers, FaGithub, FaTwitter, FaGlobe, FaBolt, FaMagic, FaFeatherAlt } from "react-icons/fa"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCount } from "@/lib/utils"
 import { blogWordCountAndTotalUsers } from "@/server/blog"
+import { motion } from "framer-motion"
+import Link from "next/link"
+import { useEffect, useState } from "react"
+import { FaBolt, FaFeatherAlt, FaGithub, FaGlobe, FaMagic, FaTwitter, FaUsers } from "react-icons/fa"
 
 export const BlogAside = () => {
   const [stats, setStats] = useState<{

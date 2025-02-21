@@ -4,18 +4,22 @@ import { Button } from "@/components/ui/button"
 import { useUser } from "@/context/userContext"
 import { calculateReadingTime } from "@/lib/utils"
 import { createBlog } from "@/server/blog"
+import { fetchUserImages, saveImageForUser } from "@/server/image"
 import "@uiw/react-markdown-preview/markdown.css"
 import "@uiw/react-md-editor/markdown-editor.css"
-import { SaveIcon, SendIcon, ImageIcon } from "lucide-react"
+import debounce from "lodash.debounce"
+import { SaveIcon, SendIcon } from "lucide-react"
 import { useTheme } from "next-themes"
 import dynamic from "next/dynamic"
-import { useEffect, useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useState } from "react"
+import toast from "react-hot-toast"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import debounce from "lodash.debounce"
-import { useRouter } from "next/navigation"
+import type { ClientUploadedFileData } from "uploadthing/types"
 import { AuthorInfo } from "./author-info"
 import { BlogMetadata } from "./blog-metadata"
+import { ImageUploaderModal } from "./image-uploader"
 import {
   CustomBlockquote,
   CustomCode,
@@ -32,11 +36,6 @@ import {
   CustomTableHead,
   CustomTableRow,
 } from "./markdown-components"
-import { ImageUploaderModal } from "./image-uploader"
-import type { ClientUploadedFileData } from "uploadthing/types"
-import type { OurFileRouter } from "@/app/api/uploadthing/core"
-import { fetchUserImages, saveImageForUser } from "@/server/image"
-import toast from "react-hot-toast"
 import { SelectTags } from "./select-tags"
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false })
@@ -67,9 +66,9 @@ export function BlogEditor() {
     publishDate: new Date(),
     readingTime: "0 min read",
     author: {
-      name: user?.name || "",
-      avatar: user?.avatar || "",
-      bio: user?.bio || "",
+      name: user!.name || "",
+      avatar: user!.avatar || "",
+      bio: user!.bio || "",
     },
     tags: [],
   })
@@ -93,9 +92,9 @@ export function BlogEditor() {
     setPost((prev) => ({
       ...prev,
       author: {
-        name: user?.name || "",
-        avatar: user?.avatar || "",
-        bio: user?.bio || "",
+        name: user!.name || "",
+        avatar: user!.avatar || "",
+        bio: user!.bio || "",
       },
     }))
   }, [user])
@@ -103,14 +102,14 @@ export function BlogEditor() {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const images = await fetchUserImages(user?.id!)
+        const images = await fetchUserImages(user!.id!)
         setUserImages(images)
       } catch (error) {
         toast.error(`Failed to fetch images: ${error as Error}`)
       }
     }
 
-    if (user?.id) {
+    if (user!.id) {
       fetchImages()
     }
   }, [user])
@@ -128,6 +127,8 @@ export function BlogEditor() {
         }))
         setTags(fetchedTags)
       } catch (error) {
+        console.error(error);
+        
         toast.error("Failed to fetch tags.")
       }
     }
@@ -146,16 +147,17 @@ export function BlogEditor() {
         post.title,
         post.content,
         post.readingTime,
-        user?.id!,
+        user!.id!,
         thumbnailUrl,
-        user?.idToken!,
-        user?.uid!,
+        user!.idToken!,
+        user!.uid!,
         selectedTags,
         post.subtitle,
       )
       toast.success("Blog post created successfully!")
       router.push("/")
     } catch (error) {
+      console.error(error);
       toast.error("Failed to create the blog post. Please try again.")
     } finally {
       setIsSubmitting(false)
@@ -164,7 +166,7 @@ export function BlogEditor() {
 
   const handleImageUpload = async (res: ClientUploadedFileData<{file:string}>[]) => {
     const newImageUrl = res[0].url
-    await saveImageForUser(newImageUrl, user?.id!)
+    await saveImageForUser(newImageUrl, user!.id!)
     setUserImages((prev) => [...prev, newImageUrl])
     toast.success("Image saved")
   }

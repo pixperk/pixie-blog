@@ -33,12 +33,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           const idToken = await currentUser.getIdToken();
           const uid = currentUser.uid;
           const userData = await getUserBySocialId(currentUser.uid);
-          const images = userData?.Images.map((image)=>image.url) || []
+          const images = userData!.Images.map((image)=>image.url) || []
           setUser({
-            id: userData?.id!,
-            name: userData?.name || "Unknown",
-            avatar: userData?.avatar || "",
-            bio: userData?.bio || "",
+            id: userData!.id!,
+            name: userData!.name || "Unknown",
+            avatar: userData!.avatar || "",
+            bio: userData!.bio || "",
             idToken,
             uid,
             images

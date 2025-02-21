@@ -96,7 +96,7 @@ export const CustomBlockquote = ({ children }: any) => (
   <blockquote className="border-l-4 border-neon-green-400 pl-4 my-4 italic text-gray-400">{children}</blockquote>
 )
 
-export const CustomCode = ({ node, inline, className, children, ...props }: any) => {
+export const CustomCode = ({ inline, className, children, ...props }: any) => {
     const match = /language-(\w+)/.exec(className || "")
     const [copied, setCopied] = useState(false)
   

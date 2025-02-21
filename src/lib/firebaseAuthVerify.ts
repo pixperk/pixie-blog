@@ -1,5 +1,5 @@
-import jwt, { JwtHeader, SigningKeyCallback, VerifyOptions } from 'jsonwebtoken';
 import axios from 'axios';
+import jwt, { JwtHeader, VerifyOptions } from 'jsonwebtoken';
 
 let cachedPublicKeys: Record<string, string> | null = null;
 let lastKeyFetchTime = 0;

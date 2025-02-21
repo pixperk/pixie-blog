@@ -56,9 +56,7 @@ export default function AuthorBlogs() {
   const [hasMore, setHasMore] = useState(true);
   const {user} = useUser()
 
-  useEffect(() => {
-    fetchBlogs();
-  }, [page]);
+
 
   const fetchBlogs = async () => {
     try {
@@ -82,8 +80,12 @@ export default function AuthorBlogs() {
     }
   };
 
+  useEffect(() => {
+    fetchBlogs();
+  }, [page, fetchBlogs]);
+
   async function handleDelete (blogId  :string){
-    try{await deleteBlog(blogId,user?.uid!, user?.idToken!, )
+    try{await deleteBlog(blogId,user!.uid!, user!.idToken!, )
       setBlogs((prev) => prev.filter((blog) => blog.id !== blogId))
     toast.success('Deleted')}
     catch(err){

@@ -1,11 +1,10 @@
 'use client';
 
-import { Dispatch, FC, SetStateAction, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ImageUploaderModal } from "./image-uploader";
+import { Dispatch, FC, SetStateAction, useState } from 'react';
 import type { ClientUploadedFileData } from "uploadthing/types";
-import type { OurFileRouter } from "@/app/api/uploadthing/core";
+import { ImageUploaderModal } from "./image-uploader";
 
 interface ThumbnailUploaderModalProps {
 handleImageUpload : (res: ClientUploadedFileData<{file:string}>[]) => void;

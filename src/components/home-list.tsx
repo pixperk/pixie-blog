@@ -8,7 +8,7 @@ import { ArrowBigUp, MessageSquare } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { Bookmark } from "./bookmark"
 
 interface BlogType {
@@ -99,7 +99,7 @@ export default function HomeList() {
     } finally {
       setLoading(false)
     }
-  }, [category, user, hasMore])
+  }, [category, user, hasMore,loading])
 
   useEffect(() => {
     setBlogs([])
@@ -121,6 +121,7 @@ export default function HomeList() {
   }, [loading, hasMore, page, fetchBlogs])
 
   return (
+    <Suspense fallback = <>{BlogSkeleton}</>>
     <div className="space-y-8 px-4 sm:px-6 max-w-4xl mx-auto">
       {blogs.length === 0 && !loading && (
         <div className="text-center py-12 space-y-4">
@@ -218,5 +219,6 @@ export default function HomeList() {
 
       {loading && <BlogSkeleton />}
     </div>
+    </Suspense>
   )
 }

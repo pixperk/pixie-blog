@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 
 function NotFoundContent() {
+  const router = useRouter()
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
       {/* Glowing 404 number */}
       <div className="relative">
         <h1 className="text-neon-green text-9xl font-bold drop-shadow-glowneon animate-pulse">
@@ -27,14 +28,15 @@ function NotFoundContent() {
         </p>
 
         {/* Home button with hover effects */}
-        <Link
-          href="/"
-          className="inline-block px-8 py-3 border-2 border-neon-green text-neon-green 
+        <button
+        onClick={()=>router.push("/")
+        }
+          className="cursor-pointer inline-block px-8 py-3 border-2 border-neon-green text-neon-green 
           rounded-lg hover:bg-neon-green hover:text-black transition-all duration-300
           font-medium tracking-wide hover:scale-105 shadow-lg hover:shadow-neon-green/30"
         >
           Return to Home
-        </Link>
+        </button>
       </div>
 
       {/* Grid pattern overlay */}

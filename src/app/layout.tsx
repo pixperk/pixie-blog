@@ -10,6 +10,7 @@ import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core"; 
 import { Toaster } from "react-hot-toast";
 import { CategoriesProvider } from "@/context/categoryContext";
+import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
+    <Suspense>
     <UserProvider>
       <CategoriesProvider>
     <html lang="en" className="dark h-full">
@@ -64,5 +66,6 @@ export default function RootLayout({
     </html>
     </CategoriesProvider>
     </UserProvider>
+    </Suspense>
   );
 }

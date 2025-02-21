@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
+import { cn, constructMetadata } from "@/lib/utils";
 import type React from "react";
 import { SiteHeader } from "@/components/site-header";
 import { UserProvider } from "@/context/userContext";
@@ -14,10 +14,7 @@ import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Pixie Blog",
-  description: "Where ideas come to life",
-};
+export const metadata: Metadata = constructMetadata()
 
 export default function RootLayout({
   children,

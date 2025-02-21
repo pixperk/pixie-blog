@@ -1,27 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
-import { ArrowLeft, ArrowUpCircle, Clock, MessageSquare } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { ArrowLeft, ArrowUpCircle, Clock, MessageSquare } from "lucide-react";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { deleteBlog, getAuthorBlogs } from "@/server/blog";
 import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogTitle,
   AlertDialogFooter,
   AlertDialogHeader,
+  AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useUser } from "@/context/userContext";
+import { deleteBlog, getAuthorBlogs } from "@/server/blog";
 import toast from "react-hot-toast";
 
 const ITEMS_PER_PAGE = 5;

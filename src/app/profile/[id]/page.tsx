@@ -33,16 +33,14 @@ import {
   ArrowUpCircle,
   Clock,
   Code,
-  Github,
-  Mail,
   MessageSquare,
-  Twitter,
-  Users,
+  Users
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
+import { FaGithub, FaLinkedin, FaTwitter } from "react-icons/fa";
 
 interface ProfileType {
   id: string;
@@ -275,23 +273,23 @@ const AuthorProfile = ({ params }: { params: Promise<{ id: string }> }) => {
               <div className="flex items-center gap-4">
                 {author.github && (
                   <SocialLink
-                    icon={Github}
+                    icon={FaGithub}
                     href={author.github}
                     label="GitHub Profile"
                   />
                 )}
                 {author.twitter && (
                   <SocialLink
-                    icon={Twitter}
+                    icon={FaTwitter}
                     href={author.twitter}
                     label="Twitter Profile"
                   />
                 )}
-                <SocialLink
-                  icon={Mail}
-                  href={`mailto:${author.email}`}
-                  label="Email"
-                />
+                {author.linkedin && (<SocialLink
+                  icon={FaLinkedin}
+                  href={author.linkedin}
+                  label="LinkedIn Profile"
+                />)}
               </div>
             </div>
           </div>

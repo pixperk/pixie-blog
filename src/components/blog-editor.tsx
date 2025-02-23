@@ -292,6 +292,9 @@ export function BlogEditor() {
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4 mt-8">
         <Button
+          onClick={()=>{
+            toast('Coming soon!')
+          }}
           variant="outline"
           className="border-neon-green-400 text-neon-green-400 hover:bg-neon-green-400 hover:text-gray-900 transition-all duration-300"
           disabled={isSubmitting}

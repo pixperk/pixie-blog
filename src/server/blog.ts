@@ -751,33 +751,45 @@ export async function getAuthorBlogs(
 }
 
 
-export async function blogWordCountAndTotalUsers(){
-  const blogs = await prisma.blog.findMany({
-    select : {
-      content : true
-    }
-  })
- let wordCount = 0;
- blogs.forEach((blog)=>{wordCount += blog.content.length})
+export async function blogWordCountAndTotalUsers() {
+  const cacheKey = "blogWordCountAndTotalUsers";
+  const cachedData = await redis.get(cacheKey);
 
- const users = await prisma.user.findMany({
-  select : {
-    blogs : {
-      select : 
-      {
-        id : true
-      }
-    }
+  if (cachedData) {
+    return JSON.parse(cachedData);
   }
- })
 
- let activeUserCount = 0;
- users.forEach((user)=>{
-  if(user.blogs.length >= 2)activeUserCount++
- })
+  const blogs = await prisma.blog.findMany({
+    select: {
+      content: true,
+    },
+  });
 
- return {words : wordCount, activeUsers : activeUserCount}
+  let wordCount = 0;
+  blogs.forEach((blog) => {
+    wordCount += blog.content.split(/\s+/).filter(Boolean).length;
+  });
 
+  const users = await prisma.user.findMany({
+    select: {
+      blogs: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  let activeUserCount = 0;
+  users.forEach((user) => {
+    if (user.blogs.length >= 2) activeUserCount++;
+  });
+
+  const result = { words: wordCount, activeUsers: activeUserCount };
+
+  await redis.set(cacheKey, JSON.stringify(result), "EX", 1800); // Cache for 30 minutes
+
+  return result;
 }
 
 export async function deleteBlog(

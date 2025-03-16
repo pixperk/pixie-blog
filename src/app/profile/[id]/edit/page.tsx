@@ -22,7 +22,7 @@ const profileSchema = z.object({
   github: z.string().url("Please enter a valid GitHub URL."),
   twitter: z.string().url("Please enter a valid Twitter URL."),
   linkedin: z.string().url("Please enter a valid LinkedIn URL."),
-  email: z.string().email("Please enter a valid email address."),
+
 });
 
 const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
@@ -49,7 +49,7 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
       github: "",
       twitter: "",
       linkedin: "",
-      email: "",
+  
     },
   });
 
@@ -61,7 +61,6 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
         setValue("github", data.github || "");
         setValue("twitter", data.twitter || "");
         setValue("linkedin", data.linkedin || "");
-        setValue("email", data.email || "");
         setProfilePicture(data.avatar || "");
         setUserImages(user!.images || []);
       } catch (error) {
@@ -91,7 +90,6 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
           github: data.github,
           twitter: data.twitter,
           linkedin: data.linkedin,
-          email: data.email,
           avatar: profilePicture,
           uid: auth.currentUser!.uid!,
         },
@@ -213,25 +211,7 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
             {errors.linkedin && <p className="text-red-500 text-sm mt-1">{errors.linkedin.message}</p>}
           </div>
 
-          {/* Email */}
-          <div>
-            <Label htmlFor="email" className="text-lg font-medium text-neon-green-400">
-              Email
-            </Label>
-            <Controller
-              name="email"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="email"
-                  placeholder="user@example.com"
-                  className="mt-2 border-gray-700 focus:ring-neon-green-400"
-                />
-              )}
-            />
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
-          </div>
+         
 
           {/* Submit Button */}
           <Button

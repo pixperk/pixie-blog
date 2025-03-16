@@ -26,7 +26,6 @@ const updateUserSchema = z.object({
   github: z.string().url("Invalid GitHub URL").optional(),
   linkedin: z.string().url("Invalid LinkedIn URL").optional(),
   twitter: z.string().url("Invalid Twitter URL").optional(),
-  email: z.string().email("Invalid email format"),
   avatar: z.string().url("Invalid avatar URL"),
   uid: z.string().min(1, "UID is required"),
 });
@@ -182,7 +181,6 @@ export async function updateUserProfile(
     github?: string;
     linkedin?: string;
     twitter?: string;
-    email: string;
     avatar: string;
     uid: string; // Firebase UID
   },
@@ -206,7 +204,6 @@ export async function updateUserProfile(
         github: validatedData.github,
         linkedin: validatedData.linkedin,
         twitter: validatedData.twitter,
-        email: validatedData.email,
         avatar: validatedData.avatar,
       },
     });
